@@ -35,7 +35,10 @@ export const TimelineWorkspace: React.FC<Props> = ({ module, onStateChange }) =>
         if (ev.length === 0) setError('Could not generate timeline. Try asking the AI Tutor.');
         else setEvents(ev);
       })
-      .catch(() => setError('Failed to generate timeline. Check your connection.'))
+      .catch((err) => {
+        console.error('Timeline error:', err);
+        setError(`Failed to generate timeline: ${err?.message ?? 'Unknown error'}`);
+      })
       .finally(() => setLoading(false));
   }, [module.topic]);
 

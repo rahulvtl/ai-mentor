@@ -32,7 +32,10 @@ export const MapWorkspace: React.FC<Props> = ({ module, onStateChange }) => {
 
     generateMapMarkers(module.topic, module.articleDescription ?? '')
       .then((data) => setMapData(data))
-      .catch(() => setError('Failed to load map data.'))
+      .catch((err) => {
+        console.error('Map error:', err);
+        setError(`Failed to load map: ${err?.message ?? 'Unknown error'}`);
+      })
       .finally(() => setLoading(false));
   }, [module.topic]);
 
