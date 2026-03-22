@@ -7,20 +7,12 @@ interface Props {
   onStateChange: (state: any) => void;
 }
 
-function useIsMobile() {
-  const [v, setV] = useState(window.innerWidth <= 900);
-  useEffect(() => {
-    const h = () => setV(window.innerWidth <= 900);
-    window.addEventListener('resize', h);
-    return () => window.removeEventListener('resize', h);
-  }, []);
-  return v;
-}
+const isMobileDevice = () => navigator.maxTouchPoints > 0;
 
 export const InteractiveAngles: React.FC<Props> = ({ onStateChange }) => {
   const [point, setPoint] = useState<[number, number]>([3, 4]);
   const [snapToGrid, setSnapToGrid] = useState(false);
-  const isMobile = useIsMobile();
+  const isMobile = isMobileDevice();
 
   // Manual input state (strings to allow editing)
   const [inputAngle, setInputAngle] = useState('');

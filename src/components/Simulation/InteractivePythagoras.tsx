@@ -1,22 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { BlockMath } from 'react-katex';
 
-function useIsMobile() {
-  const [v, setV] = useState(window.innerWidth <= 900);
-  useEffect(() => {
-    const h = () => setV(window.innerWidth <= 900);
-    window.addEventListener('resize', h);
-    return () => window.removeEventListener('resize', h);
-  }, []);
-  return v;
-}
+const isMobileDevice = () => navigator.maxTouchPoints > 0;
 
 interface Props {
   onStateChange: (state: any) => void;
 }
 
 export const InteractivePythagoras: React.FC<Props> = ({ onStateChange }) => {
-  const isMobile = useIsMobile();
+  const isMobile = isMobileDevice();
   const [solveFor, setSolveFor] = useState<'hypotenuse' | 'legA' | 'legB'>('hypotenuse');
   const [valA, setValA] = useState<string>('');
   const [valB, setValB] = useState<string>('');

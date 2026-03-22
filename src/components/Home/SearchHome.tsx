@@ -10,22 +10,14 @@ interface Props {
   onOpenAnalyser: () => void;
 }
 
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth <= 900);
-    window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
-  }, []);
-  return isMobile;
-}
+const isMobileDevice = () => navigator.maxTouchPoints > 0;
 
 export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpenAnalyser }) => {
   const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [streak, setStreak] = useState<StreakData>({ count: 0, lastStudyDate: '', totalDaysStudied: 0 });
   const [weakTopics, setWeakTopics] = useState<{ topic: string; count: number }[]>([]);
-  const isMobile = useIsMobile();
+  const isMobile = isMobileDevice();
   const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<string[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);

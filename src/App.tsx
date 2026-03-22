@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { SearchHome } from './components/Home/SearchHome';
 import { DynamicWorkspace } from './components/Simulation/DynamicWorkspace';
 import { TutorPanel } from './components/Tutor/TutorPanel';
@@ -9,15 +9,8 @@ import { recordStudySession } from './services/studyDataService';
 import { BrainCircuit, ArrowLeft, Bot, CalendarDays, FlaskConical, X } from 'lucide-react';
 import './index.css';
 
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
-  useEffect(() => {
-    const handler = () => setIsMobile(window.innerWidth <= 900);
-    window.addEventListener('resize', handler);
-    return () => window.removeEventListener('resize', handler);
-  }, []);
-  return isMobile;
-}
+// Touch device = mobile regardless of orientation (portrait or landscape)
+const isMobileDevice = () => navigator.maxTouchPoints > 0;
 
 function App() {
   const [activeModule, setActiveModule] = useState<LearningModule | null>(null);
@@ -25,7 +18,7 @@ function App() {
   const [showPlanner, setShowPlanner] = useState(false);
   const [showAnalyser, setShowAnalyser] = useState(false);
   const [tutorOpen, setTutorOpen] = useState(false);
-  const isMobile = useIsMobile();
+  const isMobile = isMobileDevice();
 
   const handleModuleLoad = (module: LearningModule) => {
     recordStudySession();

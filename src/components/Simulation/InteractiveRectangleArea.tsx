@@ -9,20 +9,12 @@ interface Props {
   onStateChange: (state: any) => void;
 }
 
-function useIsMobile() {
-  const [v, setV] = useState(window.innerWidth <= 900);
-  useEffect(() => {
-    const h = () => setV(window.innerWidth <= 900);
-    window.addEventListener('resize', h);
-    return () => window.removeEventListener('resize', h);
-  }, []);
-  return v;
-}
+const isMobileDevice = () => navigator.maxTouchPoints > 0;
 
 export const InteractiveRectangleArea: React.FC<Props> = ({ onStateChange }) => {
   const [point, setPoint] = useState<[number, number]>([5, 3]);
   const [snapToGrid, setSnapToGrid] = useState(true);
-  const isMobile = useIsMobile();
+  const isMobile = isMobileDevice();
 
   const l = point[0];
   const w = point[1];
