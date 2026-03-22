@@ -10,9 +10,9 @@ interface Props {
 }
 
 function useIsMobile() {
-  const [v, setV] = useState(window.innerWidth <= 768);
+  const [v, setV] = useState(window.innerWidth <= 900);
   useEffect(() => {
-    const h = () => setV(window.innerWidth <= 768);
+    const h = () => setV(window.innerWidth <= 900);
     window.addEventListener('resize', h);
     return () => window.removeEventListener('resize', h);
   }, []);
