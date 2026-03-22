@@ -6,7 +6,7 @@ import { StudyPlannerModal } from './components/Planner/StudyPlannerModal';
 import { TestAnalysisModal } from './components/TestAnalysis/TestAnalysisModal';
 import type { LearningModule } from './services/AiService';
 import { recordStudySession } from './services/studyDataService';
-import { BrainCircuit, ArrowLeft, BookOpen, Bot, CalendarDays, FlaskConical } from 'lucide-react';
+import { BrainCircuit, ArrowLeft, Bot, CalendarDays, FlaskConical, X } from 'lucide-react';
 import './index.css';
 
 function useIsMobile() {
@@ -24,13 +24,13 @@ function App() {
   const [studentState, setStudentState] = useState<Record<string, unknown>>({});
   const [showPlanner, setShowPlanner] = useState(false);
   const [showAnalyser, setShowAnalyser] = useState(false);
-  const [mobilePanelView, setMobilePanelView] = useState<'workspace' | 'tutor'>('workspace');
+  const [tutorOpen, setTutorOpen] = useState(false);
   const isMobile = useIsMobile();
 
   const handleModuleLoad = (module: LearningModule) => {
     recordStudySession();
     setStudentState({});
-    setMobilePanelView('workspace');
+    setTutorOpen(false);
     setActiveModule(module);
   };
 
@@ -58,7 +58,6 @@ function App() {
         background: 'var(--bg-secondary)', borderBottom: '1px solid var(--border-color)',
         gap: '0.75rem', boxShadow: 'var(--shadow-panel)', zIndex: 10, flexShrink: 0,
       }}>
-        {/* Back button */}
         <button
           className="btn"
           style={{ padding: '0.4rem', background: 'transparent', border: 'none', cursor: 'pointer', flexShrink: 0 }}
@@ -68,7 +67,6 @@ function App() {
           <ArrowLeft size={isMobile ? 20 : 24} color="var(--text-secondary)" />
         </button>
 
-        {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
           <div style={{ background: 'var(--accent-blue)', padding: isMobile ? '0.35rem' : '0.5rem', borderRadius: '8px' }}>
             <BrainCircuit size={isMobile ? 18 : 24} color="white" />
@@ -78,7 +76,6 @@ function App() {
           )}
         </div>
 
-        {/* Topic chip */}
         <span style={{
           fontWeight: 600, background: 'var(--bg-tertiary)',
           padding: isMobile ? '0.2rem 0.6rem' : '0.25rem 0.75rem',
@@ -90,38 +87,24 @@ function App() {
           {activeModule.topic}
         </span>
 
-        {/* Desktop action buttons */}
+        {/* Desktop buttons */}
         <div className="desktop-only" style={{ marginLeft: 'auto', display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
           <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Current Topic:</span>
-          <button
-            onClick={() => setShowPlanner(true)}
-            style={{ padding: '0.35rem 0.75rem', borderRadius: '20px', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', color: 'var(--accent-blue)', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
-          >
+          <button onClick={() => setShowPlanner(true)} style={{ padding: '0.35rem 0.75rem', borderRadius: '20px', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', color: 'var(--accent-blue)', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>
             Study Planner
           </button>
-          <button
-            onClick={() => setShowAnalyser(true)}
-            style={{ padding: '0.35rem 0.75rem', borderRadius: '20px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--accent-red)', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
-          >
+          <button onClick={() => setShowAnalyser(true)} style={{ padding: '0.35rem 0.75rem', borderRadius: '20px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--accent-red)', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}>
             Analyse Test
           </button>
         </div>
 
-        {/* Mobile action buttons (icon-only) */}
+        {/* Mobile icon buttons */}
         {isMobile && (
           <div style={{ marginLeft: 'auto', display: 'flex', gap: '0.4rem' }}>
-            <button
-              onClick={() => setShowPlanner(true)}
-              style={{ padding: '0.4rem', borderRadius: '8px', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', color: 'var(--accent-blue)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              title="Study Planner"
-            >
+            <button onClick={() => setShowPlanner(true)} style={{ padding: '0.4rem', borderRadius: '8px', background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.3)', color: 'var(--accent-blue)', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Study Planner">
               <CalendarDays size={16} />
             </button>
-            <button
-              onClick={() => setShowAnalyser(true)}
-              style={{ padding: '0.4rem', borderRadius: '8px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--accent-red)', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-              title="Analyse Test"
-            >
+            <button onClick={() => setShowAnalyser(true)} style={{ padding: '0.4rem', borderRadius: '8px', background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)', color: 'var(--accent-red)', cursor: 'pointer', display: 'flex', alignItems: 'center' }} title="Analyse Test">
               <FlaskConical size={16} />
             </button>
           </div>
@@ -131,54 +114,92 @@ function App() {
       {/* ── Main content ── */}
       <main style={{ display: 'flex', flex: 1, overflow: 'hidden', position: 'relative' }}>
 
-        {/* Desktop: side-by-side | Mobile: show active panel only */}
         {isMobile ? (
           <>
-            {/* Workspace panel */}
-            <div style={{
-              position: 'absolute', inset: 0,
-              background: 'var(--bg-primary)',
-              overflow: 'auto',
-              transform: mobilePanelView === 'workspace' ? 'translateX(0)' : 'translateX(-100%)',
-              transition: 'transform 0.25s ease',
-            }}>
+            {/* Full-screen workspace */}
+            <div style={{ position: 'absolute', inset: 0, background: 'var(--bg-primary)', overflow: 'auto' }}>
               <DynamicWorkspace module={activeModule} onStateChange={setStudentState} />
             </div>
 
-            {/* Tutor panel */}
+            {/* Tutor overlay — slides up from bottom when open */}
             <div style={{
-              position: 'absolute', inset: 0,
-              background: 'var(--bg-secondary)',
-              overflow: 'hidden',
-              display: 'flex', flexDirection: 'column',
-              transform: mobilePanelView === 'tutor' ? 'translateX(0)' : 'translateX(100%)',
-              transition: 'transform 0.25s ease',
+              position: 'fixed', inset: 0, zIndex: 50,
+              pointerEvents: tutorOpen ? 'all' : 'none',
             }}>
-              <TutorPanel
-                studentState={studentState}
-                goal={activeModule.goal}
-                topic={activeModule.topic}
-                articleDescription={activeModule.articleDescription}
-                articleImage={activeModule.articleImage}
-                articleUrl={activeModule.articleUrl}
-                searchResults={activeModule.searchResults}
+              {/* Dim backdrop */}
+              <div
+                onClick={() => setTutorOpen(false)}
+                style={{
+                  position: 'absolute', inset: 0,
+                  background: 'rgba(0,0,0,0.6)',
+                  opacity: tutorOpen ? 1 : 0,
+                  transition: 'opacity 0.25s ease',
+                }}
               />
+
+              {/* Tutor panel sheet — slides up */}
+              <div style={{
+                position: 'absolute', left: 0, right: 0, bottom: 0,
+                height: '90%',
+                background: 'var(--bg-secondary)',
+                borderRadius: '20px 20px 0 0',
+                display: 'flex', flexDirection: 'column',
+                overflow: 'hidden',
+                transform: tutorOpen ? 'translateY(0)' : 'translateY(100%)',
+                transition: 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
+                boxShadow: '0 -10px 40px rgba(0,0,0,0.5)',
+              }}>
+                {/* Drag handle + close */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem 0', flexShrink: 0 }}>
+                  <div style={{ width: '40px', height: '4px', background: 'var(--border-color)', borderRadius: '2px', margin: '0 auto' }} />
+                  <button
+                    onClick={() => setTutorOpen(false)}
+                    style={{ position: 'absolute', right: '1rem', top: '0.75rem', background: 'var(--bg-tertiary)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+
+                <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                  <TutorPanel
+                    studentState={studentState}
+                    goal={activeModule.goal}
+                    topic={activeModule.topic}
+                    articleDescription={activeModule.articleDescription}
+                    articleImage={activeModule.articleImage}
+                    articleUrl={activeModule.articleUrl}
+                    searchResults={activeModule.searchResults}
+                  />
+                </div>
+              </div>
             </div>
+
+            {/* Floating AI Tutor button */}
+            {!tutorOpen && (
+              <button
+                onClick={() => setTutorOpen(true)}
+                style={{
+                  position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 40,
+                  width: '56px', height: '56px', borderRadius: '50%',
+                  background: 'linear-gradient(135deg, var(--accent-purple), var(--accent-blue))',
+                  border: 'none', cursor: 'pointer',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  boxShadow: '0 4px 20px rgba(139,92,246,0.5)',
+                  animation: 'fabPulse 2.5s ease-in-out infinite',
+                }}
+                title="Open AI Tutor"
+              >
+                <Bot size={24} color="white" />
+              </button>
+            )}
           </>
         ) : (
           <>
-            {/* Desktop workspace */}
+            {/* Desktop: side-by-side */}
             <div style={{ flex: '1 1 60%', position: 'relative', overflow: 'auto', background: 'var(--bg-primary)' }}>
               <DynamicWorkspace module={activeModule} onStateChange={setStudentState} />
             </div>
-
-            {/* Desktop tutor panel */}
-            <div className="animate-slide-in-right" style={{
-              flex: '1 1 40%', flexBasis: '40%', minWidth: '350px', maxWidth: '500px',
-              overflow: 'hidden', borderLeft: '1px solid var(--border-color)',
-              background: 'var(--bg-secondary)', boxShadow: '-10px 0 30px rgba(0,0,0,0.2)',
-              zIndex: 5, display: 'flex', flexDirection: 'column',
-            }}>
+            <div className="animate-slide-in-right" style={{ flex: '1 1 40%', flexBasis: '40%', minWidth: '350px', maxWidth: '500px', overflow: 'hidden', borderLeft: '1px solid var(--border-color)', background: 'var(--bg-secondary)', boxShadow: '-10px 0 30px rgba(0,0,0,0.2)', zIndex: 5, display: 'flex', flexDirection: 'column' }}>
               <TutorPanel
                 studentState={studentState}
                 goal={activeModule.goal}
@@ -192,43 +213,6 @@ function App() {
           </>
         )}
       </main>
-
-      {/* ── Mobile bottom tab bar ── */}
-      {isMobile && (
-        <nav className="mobile-bottom-nav" style={{
-          background: 'var(--bg-secondary)', borderTop: '1px solid var(--border-color)',
-          flexShrink: 0, zIndex: 20,
-        }}>
-          <button
-            onClick={() => setMobilePanelView('workspace')}
-            style={{
-              flex: 1, padding: '0.75rem', background: 'transparent', border: 'none',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem',
-              color: mobilePanelView === 'workspace' ? 'var(--accent-blue)' : 'var(--text-secondary)',
-              cursor: 'pointer', borderTop: mobilePanelView === 'workspace' ? '2px solid var(--accent-blue)' : '2px solid transparent',
-              fontSize: '0.65rem', fontWeight: mobilePanelView === 'workspace' ? 700 : 400,
-              transition: 'color 0.15s',
-            }}
-          >
-            <BookOpen size={20} />
-            Workspace
-          </button>
-          <button
-            onClick={() => setMobilePanelView('tutor')}
-            style={{
-              flex: 1, padding: '0.75rem', background: 'transparent', border: 'none',
-              display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.25rem',
-              color: mobilePanelView === 'tutor' ? 'var(--accent-purple)' : 'var(--text-secondary)',
-              cursor: 'pointer', borderTop: mobilePanelView === 'tutor' ? '2px solid var(--accent-purple)' : '2px solid transparent',
-              fontSize: '0.65rem', fontWeight: mobilePanelView === 'tutor' ? 700 : 400,
-              transition: 'color 0.15s',
-            }}
-          >
-            <Bot size={20} />
-            AI Tutor
-          </button>
-        </nav>
-      )}
 
       {showPlanner && <StudyPlannerModal onClose={() => setShowPlanner(false)} />}
       {showAnalyser && <TestAnalysisModal onClose={() => setShowAnalyser(false)} />}
