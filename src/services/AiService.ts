@@ -248,7 +248,7 @@ export class AiService {
 
           // 1. Summary (existing)
           const summaryRes = await fetch(
-            `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topResultTitle)}`
+            `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topResultTitle)}?origin=*`
           );
           if (summaryRes.ok) {
             const data = await summaryRes.json();
@@ -260,7 +260,7 @@ export class AiService {
               // 2. Full sections (new — only when we have a real article)
               try {
                 const sectionsRes = await fetch(
-                  `https://en.wikipedia.org/api/rest_v1/page/mobile-sections/${encodeURIComponent(topResultTitle)}`
+                  `https://en.wikipedia.org/api/rest_v1/page/mobile-sections/${encodeURIComponent(topResultTitle)}?origin=*`
                 );
                 if (sectionsRes.ok) {
                   const sectionsData = await sectionsRes.json();
