@@ -203,9 +203,9 @@ export async function streamVisionResponse(
       ],
     } as Parameters<typeof client.chat.completions.create>[0]);
 
-    for await (const chunk of stream) {
+    for await (const chunk of stream as AsyncIterable<{ choices: { delta: { content?: string } }[] }>) {
       if (signal?.aborted) return;
-      const text = (chunk.choices[0]?.delta as { content?: string })?.content ?? '';
+      const text = chunk.choices[0]?.delta?.content ?? '';
       if (text) onChunk(text);
     }
 

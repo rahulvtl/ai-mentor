@@ -7,7 +7,7 @@ import type { LearningModule } from '../../services/AiService';
 import 'leaflet/dist/leaflet.css';
 
 // Fix Leaflet's broken default icon paths in Vite/webpack builds
-delete (L.Icon.Default.prototype as Record<string, unknown>)._getIconUrl;
+delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
   iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',

@@ -9,7 +9,7 @@ interface Props {
 
 const EXAMS = ['JEE Main', 'JEE Advanced', 'NEET', 'CBSE Class 12'];
 const SUBJECTS = ['Physics', 'Chemistry', 'Mathematics', 'Biology'];
-const HOURS = [2, 3, 4, 5, 6, 7, 8, 10, 12];
+const _HOURS = [2, 3, 4, 5, 6, 7, 8, 10, 12]; void _HOURS;
 
 export const StudyPlannerModal: React.FC<Props> = ({ onClose }) => {
   const [exam, setExam] = useState('');

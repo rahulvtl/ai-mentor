@@ -143,7 +143,7 @@ export const TutorPanel: React.FC<TutorPanelProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const pyqs = getPYQsForTopic(topic);
+  const _pyqs = getPYQsForTopic(topic); void _pyqs;
 
   // Reset chat when topic changes
   useEffect(() => {
