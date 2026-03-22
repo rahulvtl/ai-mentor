@@ -7,9 +7,20 @@ interface Props {
   onStateChange: (state: any) => void;
 }
 
+function useIsMobile() {
+  const [v, setV] = useState(window.innerWidth <= 768);
+  useEffect(() => {
+    const h = () => setV(window.innerWidth <= 768);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
+  return v;
+}
+
 export const InteractiveAngles: React.FC<Props> = ({ onStateChange }) => {
   const [point, setPoint] = useState<[number, number]>([3, 4]);
   const [snapToGrid, setSnapToGrid] = useState(false);
+  const isMobile = useIsMobile();
 
   // Manual input state (strings to allow editing)
   const [inputAngle, setInputAngle] = useState('');
@@ -44,16 +55,16 @@ export const InteractiveAngles: React.FC<Props> = ({ onStateChange }) => {
   };
 
   return (
-    <div className="animate-fade-in" style={{ padding: '2rem', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'var(--bg-primary)', overflow: 'auto' }}>
+    <div className="animate-fade-in" style={{ padding: isMobile ? '1rem' : '2rem', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', background: 'var(--bg-primary)', overflow: 'auto' }}>
       <div style={{ marginBottom: '1rem', textAlign: 'center' }}>
-        <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>Interactive Vector & Angle Sandbox</h2>
-        <p style={{ color: 'var(--text-secondary)' }}>Click and drag the glowing node, or use manual inputs for precision.</p>
+        <h2 style={{ fontSize: isMobile ? '1.2rem' : '1.5rem', marginBottom: '0.5rem', color: 'var(--text-primary)' }}>Interactive Vector & Angle Sandbox</h2>
+        <p style={{ color: 'var(--text-secondary)', fontSize: isMobile ? '0.8rem' : '1rem' }}>Drag the glowing node, or use manual inputs.</p>
       </div>
-      
-      <div style={{ display: 'flex', gap: '2rem', width: '100%', maxWidth: '1000px', flex: 1, minHeight: '550px' }}>
-        
-        {/* Mafs Library Diagram Container */}
-        <div className="glass-panel" style={{ flex: 1, padding: '1rem', borderRadius: '16px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', background: '#1a1a1a' }}>
+
+      <div style={{ display: 'flex', flexDirection: isMobile ? 'column' : 'row', gap: isMobile ? '1rem' : '2rem', width: '100%', maxWidth: '1000px', flex: isMobile ? 'none' : 1, minHeight: isMobile ? 'auto' : '550px' }}>
+
+        {/* Mafs canvas */}
+        <div className="glass-panel" style={{ flex: isMobile ? 'none' : 1, padding: '1rem', borderRadius: '16px', border: '1px solid var(--border-color)', display: 'flex', flexDirection: 'column', background: '#1a1a1a' }}>
           
           <div style={{ display: 'flex', justifyContent: 'flex-end', paddingBottom: '1rem', borderBottom: '1px solid var(--border-color)', marginBottom: '1rem' }}>
             <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)', cursor: 'pointer', fontSize: '0.875rem' }}>
@@ -67,7 +78,7 @@ export const InteractiveAngles: React.FC<Props> = ({ onStateChange }) => {
             </label>
           </div>
 
-          <div style={{ width: '100%', flex: 1, minHeight: '400px' }}>
+          <div style={{ width: '100%', flex: isMobile ? 'none' : 1, height: isMobile ? '280px' : undefined, minHeight: isMobile ? 'auto' : '400px' }}>
             <Mafs viewBox={{ x: [-8, 8], y: [-6, 6] }} zoom={true}>
               <Coordinates.Cartesian xAxis={{ lines: 1 }} yAxis={{ lines: 1 }} />
               
@@ -105,8 +116,8 @@ export const InteractiveAngles: React.FC<Props> = ({ onStateChange }) => {
           </div>
         </div>
         
-        {/* Real-time Data Panel */}
-        <div className="glass-panel" style={{ width: '320px', padding: '2rem', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+        {/* Controls panel */}
+        <div className="glass-panel" style={{ width: isMobile ? '100%' : '320px', padding: isMobile ? '1.25rem' : '2rem', borderRadius: '16px', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           
           <div>
             <div style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>Angle (θ)</div>

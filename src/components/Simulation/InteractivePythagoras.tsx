@@ -1,11 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { BlockMath } from 'react-katex';
 
+function useIsMobile() {
+  const [v, setV] = useState(window.innerWidth <= 768);
+  useEffect(() => {
+    const h = () => setV(window.innerWidth <= 768);
+    window.addEventListener('resize', h);
+    return () => window.removeEventListener('resize', h);
+  }, []);
+  return v;
+}
+
 interface Props {
   onStateChange: (state: any) => void;
 }
 
 export const InteractivePythagoras: React.FC<Props> = ({ onStateChange }) => {
+  const isMobile = useIsMobile();
   const [solveFor, setSolveFor] = useState<'hypotenuse' | 'legA' | 'legB'>('hypotenuse');
   const [valA, setValA] = useState<string>('');
   const [valB, setValB] = useState<string>('');
@@ -58,7 +69,7 @@ export const InteractivePythagoras: React.FC<Props> = ({ onStateChange }) => {
   };
 
   return (
-    <div className="animate-fade-in" style={{ padding: '3rem', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+    <div className="animate-fade-in" style={{ padding: isMobile ? '1rem' : '3rem', width: '100%', height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: isMobile ? 'flex-start' : 'center', overflow: 'auto' }}>
       
       <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
         <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Pythagorean Theorem Calculator</h2>
