@@ -17,13 +17,27 @@ function App() {
   const [studentState, setStudentState] = useState<Record<string, unknown>>({});
   const [showPlanner, setShowPlanner] = useState(false);
   const [showAnalyser, setShowAnalyser] = useState(false);
-  const [tutorOpen, setTutorOpen] = useState(false);
+  const [tutorOpen, setTutorOpen] = useState(false);   // animation state
+  const [tutorMounted, setTutorMounted] = useState(false); // DOM presence
   const isMobile = isMobileDevice();
+
+  const openTutor = () => {
+    setTutorMounted(true);
+    // tiny delay so the element is in DOM before we start the transition
+    requestAnimationFrame(() => requestAnimationFrame(() => setTutorOpen(true)));
+  };
+
+  const closeTutor = () => {
+    setTutorOpen(false);
+    // keep in DOM until slide-down animation completes, then remove
+    setTimeout(() => setTutorMounted(false), 350);
+  };
 
   const handleModuleLoad = (module: LearningModule) => {
     recordStudySession();
     setStudentState({});
     setTutorOpen(false);
+    setTutorMounted(false);
     setActiveModule(module);
   };
 
@@ -114,74 +128,37 @@ function App() {
               <DynamicWorkspace module={activeModule} onStateChange={setStudentState} />
             </div>
 
-            {/* Tutor overlay — slides up from bottom when open */}
-            <div style={{
-              position: 'fixed', inset: 0, zIndex: 50,
-              pointerEvents: tutorOpen ? 'all' : 'none',
-            }}>
-              {/* Dim backdrop */}
-              <div
-                onClick={() => setTutorOpen(false)}
-                style={{
-                  position: 'absolute', inset: 0,
-                  background: 'rgba(0,0,0,0.6)',
-                  opacity: tutorOpen ? 1 : 0,
-                  transition: 'opacity 0.25s ease',
-                }}
-              />
+            {/* Tutor overlay — only mounted when needed, slides up on open */}
+            {tutorMounted && (
+              <div style={{ position: 'fixed', inset: 0, zIndex: 50, pointerEvents: tutorOpen ? 'all' : 'none' }}>
+                {/* Dim backdrop */}
+                <div onClick={closeTutor} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.6)', opacity: tutorOpen ? 1 : 0, transition: 'opacity 0.25s ease' }} />
 
-              {/* Tutor panel sheet — slides up */}
-              <div style={{
-                position: 'absolute', left: 0, right: 0, bottom: 0,
-                height: '90%',
-                background: 'var(--bg-secondary)',
-                borderRadius: '20px 20px 0 0',
-                display: 'flex', flexDirection: 'column',
-                overflow: 'hidden',
-                transform: tutorOpen ? 'translateY(0)' : 'translateY(100%)',
-                transition: 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
-                boxShadow: '0 -10px 40px rgba(0,0,0,0.5)',
-              }}>
-                {/* Drag handle + close */}
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.75rem 1rem 0', flexShrink: 0 }}>
-                  <div style={{ width: '40px', height: '4px', background: 'var(--border-color)', borderRadius: '2px', margin: '0 auto' }} />
-                  <button
-                    onClick={() => setTutorOpen(false)}
-                    style={{ position: 'absolute', right: '1rem', top: '0.75rem', background: 'var(--bg-tertiary)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}
-                  >
-                    <X size={14} />
-                  </button>
-                </div>
-
-                <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
-                  <TutorPanel
-                    studentState={studentState}
-                    goal={activeModule.goal}
-                    topic={activeModule.topic}
-                    articleDescription={activeModule.articleDescription}
-                    articleImage={activeModule.articleImage}
-                    articleUrl={activeModule.articleUrl}
-                    searchResults={activeModule.searchResults}
-                  />
+                {/* Sheet — slides up from bottom */}
+                <div style={{
+                  position: 'absolute', left: 0, right: 0, bottom: 0, height: '90%',
+                  background: 'var(--bg-secondary)', borderRadius: '20px 20px 0 0',
+                  display: 'flex', flexDirection: 'column', overflow: 'hidden',
+                  transform: tutorOpen ? 'translateY(0)' : 'translateY(100%)',
+                  transition: 'transform 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
+                  boxShadow: '0 -10px 40px rgba(0,0,0,0.5)',
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', padding: '0.75rem 1rem 0', flexShrink: 0 }}>
+                    <div style={{ width: '40px', height: '4px', background: 'var(--border-color)', borderRadius: '2px', margin: '0 auto' }} />
+                    <button onClick={closeTutor} style={{ position: 'absolute', right: '1rem', top: '0.75rem', background: 'var(--bg-tertiary)', border: 'none', borderRadius: '50%', width: '28px', height: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--text-secondary)' }}>
+                      <X size={14} />
+                    </button>
+                  </div>
+                  <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                    <TutorPanel studentState={studentState} goal={activeModule.goal} topic={activeModule.topic} articleDescription={activeModule.articleDescription} articleImage={activeModule.articleImage} articleUrl={activeModule.articleUrl} searchResults={activeModule.searchResults} />
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Floating AI Tutor button */}
+            {/* Floating AI Tutor button — always visible when panel is closed */}
             {!tutorOpen && (
-              <button
-                onClick={() => setTutorOpen(true)}
-                style={{
-                  position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 40,
-                  width: '56px', height: '56px', borderRadius: '50%',
-                  background: 'linear-gradient(135deg, var(--accent-purple), var(--accent-blue))',
-                  border: 'none', cursor: 'pointer',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  boxShadow: '0 4px 20px rgba(139,92,246,0.5)',
-                  animation: 'fabPulse 2.5s ease-in-out infinite',
-                }}
-                title="Open AI Tutor"
-              >
+              <button onClick={openTutor} style={{ position: 'fixed', bottom: '1.5rem', right: '1.5rem', zIndex: 40, width: '56px', height: '56px', borderRadius: '50%', background: 'linear-gradient(135deg, var(--accent-purple), var(--accent-blue))', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 20px rgba(139,92,246,0.5)', animation: 'fabPulse 2.5s ease-in-out infinite' }} title="Open AI Tutor">
                 <Bot size={24} color="white" />
               </button>
             )}
