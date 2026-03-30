@@ -4,6 +4,8 @@ import { DynamicWorkspace } from './components/Simulation/DynamicWorkspace';
 import { TutorPanel } from './components/Tutor/TutorPanel';
 import { StudyPlannerModal } from './components/Planner/StudyPlannerModal';
 import { TestAnalysisModal } from './components/TestAnalysis/TestAnalysisModal';
+import { AuthPage } from './components/Auth/AuthPage';
+import { useAuth } from './contexts/AuthContext';
 import type { LearningModule } from './services/AiService';
 import { recordStudySession } from './services/studyDataService';
 import { BrainCircuit, ArrowLeft, Bot, CalendarDays, FlaskConical, X } from 'lucide-react';
@@ -13,6 +15,7 @@ import './index.css';
 const isMobileDevice = () => navigator.maxTouchPoints > 0;
 
 function App() {
+  const { user, loading } = useAuth();
   const [activeModule, setActiveModule] = useState<LearningModule | null>(null);
   const [studentState, setStudentState] = useState<Record<string, unknown>>({});
   const [showPlanner, setShowPlanner] = useState(false);
@@ -40,6 +43,18 @@ function App() {
     setTutorMounted(false);
     setActiveModule(module);
   };
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', width: '100vw', background: 'var(--bg-primary)' }}>
+        <div className="animate-pulse" style={{ color: 'var(--text-secondary)', fontSize: '1rem' }}>Loading...</div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return <AuthPage />;
+  }
 
   if (!activeModule) {
     return (
