@@ -1,12 +1,23 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { X } from 'lucide-react';
 import { AuthPage } from './AuthPage';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface Props {
   onClose: () => void;
 }
 
 export const AuthModal: React.FC<Props> = ({ onClose }) => {
+  const { user } = useAuth();
+  const wasOpen = useRef(true);
+
+  // Auto-close modal when user signs in
+  useEffect(() => {
+    if (wasOpen.current && user) {
+      onClose();
+    }
+  }, [user, onClose]);
+
   return (
     <div
       onClick={onClose}
@@ -28,7 +39,7 @@ export const AuthModal: React.FC<Props> = ({ onClose }) => {
         >
           <X size={24} />
         </button>
-        <AuthPage />
+        <AuthPage onSuccess={onClose} />
       </div>
     </div>
   );
