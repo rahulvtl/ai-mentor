@@ -30,9 +30,14 @@ export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpe
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setStreak(getStreak());
-    setWeakTopics(getWeakTopics(5));
-  }, []);
+    if (user) {
+      setStreak(getStreak());
+      setWeakTopics(getWeakTopics(5));
+    } else {
+      setStreak({ count: 0, lastStudyDate: '', totalDaysStudied: 0 });
+      setWeakTopics([]);
+    }
+  }, [user]);
 
   // Debounced autocomplete fetch
   const fetchAutocomplete = useCallback((q: string) => {
