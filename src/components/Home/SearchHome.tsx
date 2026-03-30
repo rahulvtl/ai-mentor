@@ -143,6 +143,16 @@ export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpe
 
         {/* Right side: streak + buttons */}
         <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? '0.4rem' : '0.75rem' }}>
+          {streak.totalDaysStudied > 0 && (
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: '0.3rem',
+              padding: isMobile ? '0.3rem 0.6rem' : '0.4rem 0.85rem', borderRadius: '20px',
+              background: 'rgba(59,130,246,0.08)', border: '1px solid rgba(59,130,246,0.25)',
+              color: 'var(--accent-blue)', fontSize: isMobile ? '0.72rem' : '0.8rem', fontWeight: 700,
+            }}>
+              🎯 {streak.totalDaysStudied}d
+            </div>
+          )}
           {streak.count > 0 && (
             <div style={{
               display: 'flex', alignItems: 'center', gap: '0.3rem',
@@ -151,7 +161,7 @@ export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpe
               color: '#F59E0B', fontSize: isMobile ? '0.72rem' : '0.8rem', fontWeight: 700,
             }}>
               <Flame size={13} />
-              {streak.count}🔥
+              {streak.count}
             </div>
           )}
 
@@ -310,18 +320,6 @@ export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpe
                 );
               })}
             </div>
-          </div>
-        )}
-
-        {/* Stats row */}
-        {streak.totalDaysStudied > 0 && (
-          <div style={{ marginTop: '1rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-              🎯 <strong style={{ color: 'white' }}>{streak.totalDaysStudied}</strong> total days studied
-            </span>
-            <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
-              🔥 Best streak: <strong style={{ color: 'white' }}>{streak.count}</strong> days
-            </span>
           </div>
         )}
 
