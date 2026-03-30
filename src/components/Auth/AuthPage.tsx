@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Sparkles, Mail, Lock, ArrowRight, Loader2, UserRound } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
-export const AuthPage: React.FC = () => {
+export const AuthPage: React.FC<{ onSuccess?: () => void }> = ({ onSuccess }) => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -29,6 +29,8 @@ export const AuthPage: React.FC = () => {
       const { error } = await signIn(email, password);
       if (error) {
         setError(error);
+      } else {
+        onSuccess?.();
       }
     }
     setLoading(false);
