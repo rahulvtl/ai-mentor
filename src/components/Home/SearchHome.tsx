@@ -116,10 +116,10 @@ export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpe
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: 'flex-start',
+      justifyContent: 'center',
       minHeight: '100vh', width: '100vw',
       padding: isMobile ? '1rem' : '2rem',
-      paddingTop: isMobile ? '5rem' : '6rem',
+      paddingTop: isMobile ? '5rem' : '4rem',
       background: 'var(--bg-primary)',
       backgroundImage: 'radial-gradient(ellipse 80% 50% at 50% 20%, rgba(59,130,246,0.06) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 70% 60%, rgba(139,92,246,0.04) 0%, transparent 50%)',
       position: 'relative',
@@ -187,7 +187,7 @@ export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpe
       </div>
 
       {/* Main search area */}
-      <div style={{ textAlign: 'center', maxWidth: '800px', width: '100%', marginTop: isMobile ? '1rem' : '4vh' }}>
+      <div style={{ textAlign: 'center', maxWidth: '800px', width: '100%' }}>
         <h2 style={{
           fontSize: isMobile ? '1.6rem' : '3rem',
           marginBottom: isMobile ? '1.5rem' : '2.5rem',
@@ -278,19 +278,6 @@ export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpe
         </form>
 
         {/* Suggestions */}
-        <div style={{ marginTop: '2rem', display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center' }}>
-          <span style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', fontWeight: 500 }}>Suggested:</span>
-          {suggestions.map((s) => (
-            <button
-              key={s}
-              className="btn chip-suggestion"
-              style={{ borderRadius: '20px', background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)' }}
-              onClick={() => { setQuery(s); performSearch(s); }}
-            >
-              {s}
-            </button>
-          ))}
-        </div>
 
         {/* Weak topics heatmap */}
         {weakTopics.length > 0 && (
