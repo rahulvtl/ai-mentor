@@ -68,6 +68,7 @@ function App() {
           onModuleLoad={handleModuleLoad}
           onOpenPlanner={() => requireAuth(() => setShowPlanner(true))}
           onOpenAnalyser={() => requireAuth(() => setShowAnalyser(true))}
+          onOpenAuth={() => setShowAuth(true)}
         />
         {showPlanner && <StudyPlannerModal onClose={() => setShowPlanner(false)} />}
         {showAnalyser && <TestAnalysisModal onClose={() => setShowAnalyser(false)} />}
