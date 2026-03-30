@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, Sparkles, Flame, CalendarDays, FlaskConical, TrendingUp } from 'lucide-react';
+import { Search, Sparkles, Flame, CalendarDays, FlaskConical, TrendingUp, BrainCircuit, Zap, BarChart3 } from 'lucide-react';
 import { AiService, type LearningModule } from '../../services/AiService';
 import { getStreak, getWeakTopics, type StreakData } from '../../services/studyDataService';
 import '../../index.css';
@@ -116,11 +116,13 @@ export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpe
   return (
     <div style={{
       display: 'flex', flexDirection: 'column', alignItems: 'center',
-      justifyContent: isMobile ? 'flex-start' : 'center',
+      justifyContent: 'flex-start',
       minHeight: '100vh', width: '100vw',
       padding: isMobile ? '1rem' : '2rem',
-      paddingTop: isMobile ? '5rem' : '2rem',
-      background: 'var(--bg-primary)', position: 'relative',
+      paddingTop: isMobile ? '5rem' : '6rem',
+      background: 'var(--bg-primary)',
+      backgroundImage: 'radial-gradient(ellipse 80% 50% at 50% 20%, rgba(59,130,246,0.06) 0%, transparent 60%), radial-gradient(ellipse 60% 40% at 70% 60%, rgba(139,92,246,0.04) 0%, transparent 50%)',
+      position: 'relative',
       overflowY: 'auto',
     }}>
 
@@ -173,8 +175,8 @@ export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpe
             style={{
               display: 'flex', alignItems: 'center', gap: '0.3rem',
               padding: isMobile ? '0.35rem 0.6rem' : '0.4rem 0.85rem', borderRadius: '20px',
-              background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)',
-              color: 'var(--accent-red)', fontSize: isMobile ? '0.72rem' : '0.8rem', fontWeight: 600, cursor: 'pointer',
+              background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.3)',
+              color: 'var(--accent-purple)', fontSize: isMobile ? '0.72rem' : '0.8rem', fontWeight: 600, cursor: 'pointer',
             }}
           >
             <FlaskConical size={13} />
@@ -185,7 +187,7 @@ export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpe
       </div>
 
       {/* Main search area */}
-      <div style={{ textAlign: 'center', maxWidth: '800px', width: '100%', marginTop: isMobile ? '1rem' : '-8vh' }}>
+      <div style={{ textAlign: 'center', maxWidth: '800px', width: '100%', marginTop: isMobile ? '1rem' : '4vh' }}>
         <h2 style={{
           fontSize: isMobile ? '1.6rem' : '3rem',
           marginBottom: isMobile ? '1.5rem' : '2.5rem',
@@ -281,7 +283,7 @@ export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpe
           {suggestions.map((s) => (
             <button
               key={s}
-              className="btn"
+              className="btn chip-suggestion"
               style={{ borderRadius: '20px', background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.1)' }}
               onClick={() => { setQuery(s); performSearch(s); }}
             >
@@ -336,6 +338,50 @@ export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpe
             </span>
           </div>
         )}
+
+        {/* Feature cards */}
+        <div style={{
+          marginTop: isMobile ? '2.5rem' : '4rem',
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)',
+          gap: '1rem',
+          width: '100%',
+        }}>
+          {[
+            { icon: <BrainCircuit size={22} color="var(--accent-blue)" />, title: 'AI-Powered Lessons', desc: 'Interactive explanations tailored to your level with real-time simulations.', action: () => inputRef.current?.focus() },
+            { icon: <Zap size={22} color="var(--accent-purple)" />, title: 'Smart Study Plans', desc: 'Personalised schedules for JEE, NEET, and CBSE with adaptive tracking.', action: onOpenPlanner },
+            { icon: <BarChart3 size={22} color="var(--accent-green)" />, title: 'Test Analysis', desc: 'Upload your results and get AI-driven insights on where to improve.', action: onOpenAnalyser },
+          ].map((card) => (
+            <div key={card.title} className="feature-card" onClick={card.action} style={{
+              padding: '1.25rem',
+              background: 'rgba(255,255,255,0.02)',
+              border: '1px solid rgba(255,255,255,0.06)',
+              borderRadius: '16px',
+              textAlign: 'left',
+              cursor: 'pointer',
+            }}>
+              <div style={{ marginBottom: '0.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '10px', background: 'rgba(255,255,255,0.04)' }}>
+                {card.icon}
+              </div>
+              <h3 style={{ fontSize: '0.95rem', fontWeight: 600, marginBottom: '0.4rem', color: 'var(--text-primary)' }}>{card.title}</h3>
+              <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', lineHeight: 1.5, margin: 0 }}>{card.desc}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Footer */}
+        <div style={{
+          marginTop: isMobile ? '2rem' : '3rem',
+          paddingTop: '1.5rem',
+          borderTop: '1px solid rgba(255,255,255,0.06)',
+          width: '100%',
+          textAlign: 'center',
+          paddingBottom: '2rem',
+        }}>
+          <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', opacity: 0.6, margin: 0 }}>
+            Built with AI &middot; Powered by Claude &middot; Made by MotionPixelz
+          </p>
+        </div>
       </div>
     </div>
   );
