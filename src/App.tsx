@@ -4,7 +4,7 @@ import { DynamicWorkspace } from './components/Simulation/DynamicWorkspace';
 import { TutorPanel } from './components/Tutor/TutorPanel';
 import { StudyPlannerModal } from './components/Planner/StudyPlannerModal';
 import { TestAnalysisModal } from './components/TestAnalysis/TestAnalysisModal';
-import { AuthPage } from './components/Auth/AuthPage';
+import { AuthModal } from './components/Auth/AuthModal';
 import { useAuth } from './contexts/AuthContext';
 import type { LearningModule } from './services/AiService';
 import { recordStudySession } from './services/studyDataService';
@@ -17,6 +17,7 @@ const isMobileDevice = () => navigator.maxTouchPoints > 0;
 function App() {
   const { user, loading } = useAuth();
   const [activeModule, setActiveModule] = useState<LearningModule | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
   const [studentState, setStudentState] = useState<Record<string, unknown>>({});
   const [showPlanner, setShowPlanner] = useState(false);
   const [showAnalyser, setShowAnalyser] = useState(false);
@@ -52,20 +53,25 @@ function App() {
     );
   }
 
-  if (!user) {
-    return <AuthPage />;
-  }
+  const requireAuth = (action: () => void) => {
+    if (!user) {
+      setShowAuth(true);
+    } else {
+      action();
+    }
+  };
 
   if (!activeModule) {
     return (
       <>
         <SearchHome
           onModuleLoad={handleModuleLoad}
-          onOpenPlanner={() => setShowPlanner(true)}
-          onOpenAnalyser={() => setShowAnalyser(true)}
+          onOpenPlanner={() => requireAuth(() => setShowPlanner(true))}
+          onOpenAnalyser={() => requireAuth(() => setShowAnalyser(true))}
         />
         {showPlanner && <StudyPlannerModal onClose={() => setShowPlanner(false)} />}
         {showAnalyser && <TestAnalysisModal onClose={() => setShowAnalyser(false)} />}
+        {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       </>
     );
   }
@@ -201,6 +207,7 @@ function App() {
 
       {showPlanner && <StudyPlannerModal onClose={() => setShowPlanner(false)} />}
       {showAnalyser && <TestAnalysisModal onClose={() => setShowAnalyser(false)} />}
+      {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
     </div>
   );
 }
