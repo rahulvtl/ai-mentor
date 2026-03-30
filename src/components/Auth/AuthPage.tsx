@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Sparkles, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react';
+import { Sparkles, Mail, Lock, ArrowRight, Loader2, UserRound } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 
 export const AuthPage: React.FC = () => {
   const [isSignUp, setIsSignUp] = useState(false);
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -18,7 +19,7 @@ export const AuthPage: React.FC = () => {
     setLoading(true);
 
     if (isSignUp) {
-      const { error } = await signUp(email, password);
+      const { error } = await signUp(email, password, name);
       if (error) {
         setError(error);
       } else {
@@ -63,6 +64,30 @@ export const AuthPage: React.FC = () => {
         </div>
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* Name (sign up only) */}
+          {isSignUp && (
+            <div style={{ position: 'relative' }}>
+              <UserRound size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+              <input
+                type="text"
+                placeholder="Your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                style={{
+                  width: '100%', padding: '0.85rem 1rem 0.85rem 2.75rem',
+                  background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)',
+                  borderRadius: '12px', color: 'var(--text-primary)',
+                  fontSize: '0.95rem', outline: 'none',
+                  transition: 'border-color 0.2s',
+                  boxSizing: 'border-box',
+                }}
+                onFocus={(e) => e.target.style.borderColor = 'var(--accent-blue)'}
+                onBlur={(e) => e.target.style.borderColor = 'var(--border-color)'}
+              />
+            </div>
+          )}
+
           {/* Email */}
           <div style={{ position: 'relative' }}>
             <Mail size={16} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />

@@ -1,22 +1,26 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, Sparkles, Flame, CalendarDays, FlaskConical, TrendingUp, BrainCircuit, Zap, BarChart3 } from 'lucide-react';
+import { Search, Sparkles, Flame, CalendarDays, FlaskConical, TrendingUp, BrainCircuit, Zap, BarChart3, User, LogOut, LogIn } from 'lucide-react';
 import { AiService, type LearningModule } from '../../services/AiService';
 import { getStreak, getWeakTopics, type StreakData } from '../../services/studyDataService';
+import { useAuth } from '../../contexts/AuthContext';
 import '../../index.css';
 
 interface Props {
   onModuleLoad: (module: LearningModule) => void;
   onOpenPlanner: () => void;
   onOpenAnalyser: () => void;
+  onOpenAuth?: () => void;
 }
 
 const isMobileDevice = () => navigator.maxTouchPoints > 0;
 
-export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpenAnalyser }) => {
+export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpenAnalyser, onOpenAuth }) => {
+  const { user, signOut } = useAuth();
   const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [streak, setStreak] = useState<StreakData>({ count: 0, lastStudyDate: '', totalDaysStudied: 0 });
   const [weakTopics, setWeakTopics] = useState<{ topic: string; count: number }[]>([]);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const isMobile = isMobileDevice();
   const [autocompleteSuggestions, setAutocompleteSuggestions] = useState<string[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
@@ -192,11 +196,86 @@ export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpe
             {!isMobile && 'Analyse Test'}
             {isMobile && 'Test'}
           </button>
+
+          {/* Profile / Sign In */}
+          {user ? (
+            <div style={{ position: 'relative' }}>
+              <button
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  width: isMobile ? '30px' : '34px', height: isMobile ? '30px' : '34px',
+                  borderRadius: '50%',
+                  background: 'linear-gradient(135deg, var(--accent-blue), var(--accent-purple))',
+                  border: 'none', cursor: 'pointer', color: 'white',
+                  fontSize: '0.8rem', fontWeight: 700,
+                }}
+              >
+                {(user.user_metadata?.display_name || user.email)?.charAt(0).toUpperCase() || <User size={16} />}
+              </button>
+              {showProfileMenu && (
+                <>
+                  <div onClick={() => setShowProfileMenu(false)} style={{ position: 'fixed', inset: 0, zIndex: 29 }} />
+                  <div style={{
+                    position: 'absolute', top: '110%', right: 0,
+                    background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+                    borderRadius: '12px', padding: '0.5rem', minWidth: '200px',
+                    boxShadow: '0 8px 30px rgba(0,0,0,0.5)', zIndex: 30,
+                  }}>
+                    <div style={{ padding: '0.6rem 0.75rem', borderBottom: '1px solid var(--border-color)', marginBottom: '0.25rem' }}>
+                      {user.user_metadata?.display_name && (
+                        <p style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 600, margin: 0 }}>{user.user_metadata.display_name}</p>
+                      )}
+                      <p style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', margin: '0.15rem 0 0', wordBreak: 'break-all' }}>{user.email}</p>
+                    </div>
+                    <button
+                      onClick={() => { signOut(); setShowProfileMenu(false); }}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '0.5rem',
+                        width: '100%', padding: '0.6rem 0.75rem', borderRadius: '8px',
+                        background: 'none', border: 'none',
+                        color: 'var(--accent-red)', fontSize: '0.85rem', fontWeight: 500,
+                        cursor: 'pointer', textAlign: 'left',
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(239,68,68,0.1)'}
+                      onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                    >
+                      <LogOut size={14} />
+                      Sign Out
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          ) : (
+            <button
+              onClick={onOpenAuth}
+              style={{
+                display: 'flex', alignItems: 'center', gap: '0.3rem',
+                padding: isMobile ? '0.35rem 0.6rem' : '0.4rem 0.85rem', borderRadius: '20px',
+                background: 'linear-gradient(135deg, var(--accent-blue), var(--accent-purple))',
+                border: 'none',
+                color: 'white', fontSize: isMobile ? '0.72rem' : '0.8rem', fontWeight: 600, cursor: 'pointer',
+              }}
+            >
+              <LogIn size={13} />
+              {!isMobile && 'Sign In'}
+            </button>
+          )}
         </div>
       </div>
 
       {/* Main search area */}
       <div style={{ textAlign: 'center', maxWidth: '800px', width: '100%' }}>
+        {user && (
+          <p style={{
+            fontSize: isMobile ? '0.9rem' : '1.1rem',
+            color: 'var(--text-secondary)',
+            marginBottom: '0.5rem',
+          }}>
+            Welcome back, <span style={{ color: 'var(--accent-blue)', fontWeight: 600 }}>{user.user_metadata?.display_name || user.email?.split('@')[0]}</span>
+          </p>
+        )}
         <h2 style={{
           fontSize: isMobile ? '1.6rem' : '3rem',
           marginBottom: isMobile ? '1.5rem' : '2.5rem',
