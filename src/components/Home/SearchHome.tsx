@@ -111,7 +111,6 @@ export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpe
     }
   };
 
-  const suggestions = ["Area of a Rectangle", "Interactive Vectors", "Pythagoras Theorem", "Newton's Laws of Motion"];
 
   return (
     <div style={{
