@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { X, CalendarDays, Loader2, BookOpen, Save, CheckCircle } from 'lucide-react';
 import { streamGroqResponse } from '../../services/claudeService';
 import { saveStudyPlan } from '../../services/studyDataService';
+import { PlanRenderer } from './PlanRenderer';
 
 interface Props {
   onClose: () => void;
@@ -42,12 +43,15 @@ export const StudyPlannerModal: React.FC<Props> = ({ onClose }) => {
 
     const system = `You are an expert academic coach for Indian competitive exams (JEE/NEET).
 Create detailed, realistic weekly study plans. Be specific with timings, topics, and advice.
-Format the plan clearly with days, subjects, and hours. Include:
-- A brief strategy overview
-- Day-by-day weekly schedule
-- Subject-wise priority order
-- Daily revision tips
-- Key warnings (what NOT to do)
+
+IMPORTANT: Format the schedule as a markdown table with columns: | Day | Subject | Time Allocation | Topics to Cover |
+Each row should have one session. Use the day name (Monday, Tuesday, etc.) in the Day column.
+
+Include these sections with clear headings:
+- **Strategy Overview:** A brief 2-3 sentence strategy
+- **Day-by-Day Weekly Schedule:** As a markdown table
+- **Daily Revision Tips:** Numbered list
+- **Key Warnings (What NOT to do):** Numbered list
 Keep it motivating but realistic.`;
 
     const user = `Create a personalised weekly study plan for a student with these details:
@@ -196,21 +200,22 @@ Generate a detailed 7-day weekly study schedule with subject-wise time allocatio
               border: '1px solid var(--border-color)',
               padding: '1.25rem',
               overflowY: 'auto',
-              fontFamily: 'inherit',
-              fontSize: '0.84rem',
-              lineHeight: 1.7,
-              color: 'rgba(255,255,255,0.85)',
-              whiteSpace: 'pre-wrap',
               minHeight: '300px',
             }}>
-              {planText || (
+              {!planText && !isGenerating && (
                 <div style={{ color: 'var(--text-secondary)', textAlign: 'center', marginTop: '4rem' }}>
                   <CalendarDays size={40} style={{ marginBottom: '1rem', opacity: 0.3 }} />
                   <p>Select your exam, date, and preferences then hit <strong>Generate Plan</strong></p>
                 </div>
               )}
               {isGenerating && (
-                <span style={{ display: 'inline-block', width: '2px', height: '1em', background: 'var(--accent-blue)', animation: 'blink 0.8s step-end infinite', verticalAlign: 'text-bottom' }} />
+                <div style={{ fontFamily: 'inherit', fontSize: '0.84rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.85)', whiteSpace: 'pre-wrap' }}>
+                  {planText}
+                  <span style={{ display: 'inline-block', width: '2px', height: '1em', background: 'var(--accent-blue)', animation: 'blink 0.8s step-end infinite', verticalAlign: 'text-bottom' }} />
+                </div>
+              )}
+              {planText && !isGenerating && (
+                <PlanRenderer planText={planText} daysLeft={daysLeft} exam={exam} />
               )}
             </div>
 
