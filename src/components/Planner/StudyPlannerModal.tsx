@@ -6,13 +6,14 @@ import { PlanRenderer } from './PlanRenderer';
 
 interface Props {
   onClose: () => void;
+  onLearnTopic?: (topic: string) => void;
 }
 
 const EXAMS = ['JEE Main', 'JEE Advanced', 'NEET', 'CBSE Class 12'];
 const SUBJECTS = ['Physics', 'Chemistry', 'Mathematics', 'Biology'];
 const _HOURS = [2, 3, 4, 5, 6, 7, 8, 10, 12]; void _HOURS;
 
-export const StudyPlannerModal: React.FC<Props> = ({ onClose }) => {
+export const StudyPlannerModal: React.FC<Props> = ({ onClose, onLearnTopic }) => {
   const [exam, setExam] = useState('');
   const [examDate, setExamDate] = useState('');
   const [weakSubjects, setWeakSubjects] = useState<string[]>([]);
@@ -215,7 +216,7 @@ Generate a detailed 7-day weekly study schedule with subject-wise time allocatio
                 </div>
               )}
               {planText && !isGenerating && (
-                <PlanRenderer planText={planText} daysLeft={daysLeft} exam={exam} />
+                <PlanRenderer planText={planText} daysLeft={daysLeft} exam={exam} onLearnTopic={onLearnTopic} />
               )}
             </div>
 

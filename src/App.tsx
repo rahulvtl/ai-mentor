@@ -6,7 +6,7 @@ import { StudyPlannerModal } from './components/Planner/StudyPlannerModal';
 import { TestAnalysisModal } from './components/TestAnalysis/TestAnalysisModal';
 import { AuthModal } from './components/Auth/AuthModal';
 import { useAuth } from './contexts/AuthContext';
-import type { LearningModule } from './services/AiService';
+import { AiService, type LearningModule } from './services/AiService';
 import { recordStudySession } from './services/studyDataService';
 import { BrainCircuit, ArrowLeft, Bot, CalendarDays, FlaskConical, X } from 'lucide-react';
 import './index.css';
@@ -53,6 +53,16 @@ function App() {
     );
   }
 
+  const handleLearnTopic = async (topic: string) => {
+    setShowPlanner(false);
+    try {
+      const module = await AiService.searchTopic(topic);
+      handleModuleLoad(module);
+    } catch (e) {
+      console.error('Failed to load topic:', e);
+    }
+  };
+
   const requireAuth = (action: () => void) => {
     if (!user) {
       setShowAuth(true);
@@ -70,7 +80,7 @@ function App() {
           onOpenAnalyser={() => requireAuth(() => setShowAnalyser(true))}
           onOpenAuth={() => setShowAuth(true)}
         />
-        {showPlanner && <StudyPlannerModal onClose={() => setShowPlanner(false)} />}
+        {showPlanner && <StudyPlannerModal onClose={() => setShowPlanner(false)} onLearnTopic={handleLearnTopic} />}
         {showAnalyser && <TestAnalysisModal onClose={() => setShowAnalyser(false)} />}
         {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       </>
@@ -206,7 +216,7 @@ function App() {
         )}
       </main>
 
-      {showPlanner && <StudyPlannerModal onClose={() => setShowPlanner(false)} />}
+      {showPlanner && <StudyPlannerModal onClose={() => setShowPlanner(false)} onLearnTopic={handleLearnTopic} />}
       {showAnalyser && <TestAnalysisModal onClose={() => setShowAnalyser(false)} />}
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
     </div>
