@@ -2,18 +2,16 @@ import React, { useState, useRef } from 'react';
 import { X, CalendarDays, Loader2, BookOpen, Save, CheckCircle } from 'lucide-react';
 import { streamGroqResponse } from '../../services/claudeService';
 import { saveStudyPlan } from '../../services/studyDataService';
-import { PlanRenderer } from './PlanRenderer';
 
 interface Props {
   onClose: () => void;
-  onLearnTopic?: (topic: string) => void;
 }
 
 const EXAMS = ['JEE Main', 'JEE Advanced', 'NEET', 'CBSE Class 12'];
 const SUBJECTS = ['Physics', 'Chemistry', 'Mathematics', 'Biology'];
 const _HOURS = [2, 3, 4, 5, 6, 7, 8, 10, 12]; void _HOURS;
 
-export const StudyPlannerModal: React.FC<Props> = ({ onClose, onLearnTopic }) => {
+export const StudyPlannerModal: React.FC<Props> = ({ onClose }) => {
   const [exam, setExam] = useState('');
   const [examDate, setExamDate] = useState('');
   const [weakSubjects, setWeakSubjects] = useState<string[]>([]);
@@ -203,21 +201,17 @@ Generate a detailed 7-day weekly study schedule with subject-wise time allocatio
               overflowY: 'auto',
               minHeight: '300px',
             }}>
-              {!planText && !isGenerating && (
-                <div style={{ color: 'var(--text-secondary)', textAlign: 'center', marginTop: '4rem' }}>
-                  <CalendarDays size={40} style={{ marginBottom: '1rem', opacity: 0.3 }} />
-                  <p>Select your exam, date, and preferences then hit <strong>Generate Plan</strong></p>
-                </div>
-              )}
-              {isGenerating && (
-                <div style={{ fontFamily: 'inherit', fontSize: '0.84rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.85)', whiteSpace: 'pre-wrap' }}>
-                  {planText}
+              <div style={{ fontFamily: 'inherit', fontSize: '0.84rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.85)', whiteSpace: 'pre-wrap' }}>
+                {planText || (
+                  <div style={{ color: 'var(--text-secondary)', textAlign: 'center', marginTop: '4rem', whiteSpace: 'normal' }}>
+                    <CalendarDays size={40} style={{ marginBottom: '1rem', opacity: 0.3 }} />
+                    <p>Select your exam, date, and preferences then hit <strong>Generate Plan</strong></p>
+                  </div>
+                )}
+                {isGenerating && (
                   <span style={{ display: 'inline-block', width: '2px', height: '1em', background: 'var(--accent-blue)', animation: 'blink 0.8s step-end infinite', verticalAlign: 'text-bottom' }} />
-                </div>
-              )}
-              {planText && !isGenerating && (
-                <PlanRenderer planText={planText} daysLeft={daysLeft} exam={exam} onLearnTopic={onLearnTopic} />
-              )}
+                )}
+              </div>
             </div>
 
             {planText && !isGenerating && (
