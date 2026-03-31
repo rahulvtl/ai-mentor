@@ -56,7 +56,7 @@ function App() {
   }
 
   const handleLearnTopic = async (topic: string) => {
-    setShowDashboard(false);
+    // Keep showDashboard=true so Back from lesson returns to dashboard
     try {
       const module = await AiService.searchTopic(topic);
       handleModuleLoad(module);
