@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ChevronDown, ChevronRight, Clock, AlertTriangle, Lightbulb, Trophy } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ChevronDown, ChevronRight, Clock, AlertTriangle, Lightbulb, Trophy, BookOpen } from 'lucide-react';
 
 const SUBJECT_COLORS: Record<string, string> = {
   physics: '#3B82F6',
@@ -167,12 +167,32 @@ interface Props {
   planText: string;
   daysLeft: number | null;
   exam: string;
+  onLearnTopic?: (topic: string) => void;
 }
 
-export const PlanRenderer: React.FC<Props> = ({ planText, daysLeft, exam }) => {
+const STORAGE_KEY = 'ai-mentor-plan-checks';
+
+function loadChecks(): Set<string> {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) return new Set(JSON.parse(stored));
+  } catch { /* ignore */ }
+  return new Set();
+}
+
+function saveChecks(checks: Set<string>) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([...checks]));
+}
+
+export const PlanRenderer: React.FC<Props> = ({ planText, daysLeft, exam, onLearnTopic }) => {
   const plan = parsePlanText(planText);
   const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set([0]));
-  const [checkedItems, setCheckedItems] = useState<Set<string>>(new Set());
+  const [checkedItems, setCheckedItems] = useState<Set<string>>(() => loadChecks());
+
+  // Persist checks to localStorage
+  useEffect(() => {
+    saveChecks(checkedItems);
+  }, [checkedItems]);
 
   const toggleDay = (i: number) => {
     setExpandedDays(prev => {
@@ -182,13 +202,19 @@ export const PlanRenderer: React.FC<Props> = ({ planText, daysLeft, exam }) => {
     });
   };
 
-  const toggleCheck = (key: string) => {
+  const toggleCheck = useCallback((key: string, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setCheckedItems(prev => {
       const next = new Set(prev);
       if (next.has(key)) next.delete(key); else next.add(key);
       return next;
     });
-  };
+  }, []);
+
+  const handleLearn = useCallback((topic: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    onLearnTopic?.(topic);
+  }, [onLearnTopic]);
 
   const totalSessions = plan.days.reduce((sum, d) => sum + d.sessions.length, 0);
   const completedSessions = checkedItems.size;
@@ -301,24 +327,25 @@ export const PlanRenderer: React.FC<Props> = ({ planText, daysLeft, exam }) => {
                   return (
                     <div
                       key={j}
-                      onClick={() => toggleCheck(key)}
                       style={{
-                        display: 'flex', alignItems: 'flex-start', gap: '0.75rem',
+                        display: 'flex', alignItems: 'center', gap: '0.75rem',
                         padding: '0.7rem 0.85rem', borderRadius: '10px',
                         background: checked ? 'rgba(16,185,129,0.06)' : 'rgba(255,255,255,0.02)',
                         border: `1px solid ${checked ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.05)'}`,
-                        cursor: 'pointer', transition: 'all 0.15s',
+                        transition: 'all 0.15s',
                         opacity: checked ? 0.6 : 1,
                       }}
                     >
                       {/* Checkbox */}
-                      <div style={{
-                        width: '18px', height: '18px', borderRadius: '5px', flexShrink: 0,
-                        border: `2px solid ${checked ? 'var(--accent-green)' : 'rgba(255,255,255,0.15)'}`,
-                        background: checked ? 'var(--accent-green)' : 'transparent',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        marginTop: '1px', transition: 'all 0.15s',
-                      }}>
+                      <div
+                        onClick={(e) => toggleCheck(key, e)}
+                        style={{
+                          width: '18px', height: '18px', borderRadius: '5px', flexShrink: 0,
+                          border: `2px solid ${checked ? 'var(--accent-green)' : 'rgba(255,255,255,0.15)'}`,
+                          background: checked ? 'var(--accent-green)' : 'transparent',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          cursor: 'pointer', transition: 'all 0.15s',
+                        }}>
                         {checked && <span style={{ color: 'white', fontSize: '0.65rem', fontWeight: 700 }}>✓</span>}
                       </div>
 
@@ -351,6 +378,26 @@ export const PlanRenderer: React.FC<Props> = ({ planText, daysLeft, exam }) => {
                         <Clock size={11} />
                         {session.hours}
                       </div>
+
+                      {/* Learn button */}
+                      {onLearnTopic && !checked && (
+                        <button
+                          onClick={(e) => handleLearn(session.topics || session.subject, e)}
+                          style={{
+                            display: 'flex', alignItems: 'center', gap: '0.3rem',
+                            padding: '0.3rem 0.65rem', borderRadius: '8px',
+                            background: `${color}15`, border: `1px solid ${color}33`,
+                            color, fontSize: '0.7rem', fontWeight: 600,
+                            cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+                            transition: 'all 0.15s',
+                          }}
+                          onMouseEnter={(e) => { e.currentTarget.style.background = `${color}30`; }}
+                          onMouseLeave={(e) => { e.currentTarget.style.background = `${color}15`; }}
+                        >
+                          <BookOpen size={12} />
+                          Learn
+                        </button>
+                      )}
                     </div>
                   );
                 })}
