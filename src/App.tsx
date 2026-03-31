@@ -3,6 +3,7 @@ import { SearchHome } from './components/Home/SearchHome';
 import { DynamicWorkspace } from './components/Simulation/DynamicWorkspace';
 import { TutorPanel } from './components/Tutor/TutorPanel';
 import { StudyPlannerModal } from './components/Planner/StudyPlannerModal';
+import { StudyDashboard } from './components/Planner/StudyDashboard';
 import { TestAnalysisModal } from './components/TestAnalysis/TestAnalysisModal';
 import { AuthModal } from './components/Auth/AuthModal';
 import { useAuth } from './contexts/AuthContext';
@@ -20,6 +21,7 @@ function App() {
   const [showAuth, setShowAuth] = useState(false);
   const [studentState, setStudentState] = useState<Record<string, unknown>>({});
   const [showPlanner, setShowPlanner] = useState(false);
+  const [showDashboard, setShowDashboard] = useState(false);
   const [showAnalyser, setShowAnalyser] = useState(false);
   const [tutorOpen, setTutorOpen] = useState(false);   // animation state
   const [tutorMounted, setTutorMounted] = useState(false); // DOM presence
@@ -54,7 +56,7 @@ function App() {
   }
 
   const handleLearnTopic = async (topic: string) => {
-    setShowPlanner(false);
+    setShowDashboard(false);
     try {
       const module = await AiService.searchTopic(topic);
       handleModuleLoad(module);
@@ -71,16 +73,26 @@ function App() {
     }
   };
 
+  if (showDashboard && !activeModule) {
+    return (
+      <StudyDashboard
+        onBack={() => setShowDashboard(false)}
+        onLearnTopic={handleLearnTopic}
+      />
+    );
+  }
+
   if (!activeModule) {
     return (
       <>
         <SearchHome
           onModuleLoad={handleModuleLoad}
           onOpenPlanner={() => requireAuth(() => setShowPlanner(true))}
+          onOpenDashboard={() => requireAuth(() => setShowDashboard(true))}
           onOpenAnalyser={() => requireAuth(() => setShowAnalyser(true))}
           onOpenAuth={() => setShowAuth(true)}
         />
-        {showPlanner && <StudyPlannerModal onClose={() => setShowPlanner(false)} onLearnTopic={handleLearnTopic} />}
+        {showPlanner && <StudyPlannerModal onClose={() => setShowPlanner(false)} />}
         {showAnalyser && <TestAnalysisModal onClose={() => setShowAnalyser(false)} />}
         {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
       </>
@@ -216,7 +228,7 @@ function App() {
         )}
       </main>
 
-      {showPlanner && <StudyPlannerModal onClose={() => setShowPlanner(false)} onLearnTopic={handleLearnTopic} />}
+      {showPlanner && <StudyPlannerModal onClose={() => setShowPlanner(false)} />}
       {showAnalyser && <TestAnalysisModal onClose={() => setShowAnalyser(false)} />}
       {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
     </div>

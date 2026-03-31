@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { Search, Sparkles, Flame, CalendarDays, FlaskConical, TrendingUp, BrainCircuit, Zap, BarChart3, User, LogOut, LogIn } from 'lucide-react';
+import { Search, Sparkles, Flame, CalendarDays, FlaskConical, TrendingUp, BrainCircuit, Zap, BarChart3, User, LogOut, LogIn, LayoutDashboard } from 'lucide-react';
 import { AiService, type LearningModule } from '../../services/AiService';
 import { getStreak, getWeakTopics, type StreakData } from '../../services/studyDataService';
 import { useAuth } from '../../contexts/AuthContext';
@@ -8,13 +8,14 @@ import '../../index.css';
 interface Props {
   onModuleLoad: (module: LearningModule) => void;
   onOpenPlanner: () => void;
+  onOpenDashboard?: () => void;
   onOpenAnalyser: () => void;
   onOpenAuth?: () => void;
 }
 
 const isMobileDevice = () => navigator.maxTouchPoints > 0;
 
-export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpenAnalyser, onOpenAuth }) => {
+export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpenDashboard, onOpenAnalyser, onOpenAuth }) => {
   const { user, signOut } = useAuth();
   const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
@@ -186,6 +187,19 @@ export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpe
             <CalendarDays size={13} />
             {!isMobile && 'Study Planner'}
             {isMobile && 'Planner'}
+          </button>
+
+          <button
+            onClick={onOpenDashboard}
+            style={{
+              display: 'flex', alignItems: 'center', gap: '0.3rem',
+              padding: isMobile ? '0.35rem 0.6rem' : '0.4rem 0.85rem', borderRadius: '20px',
+              background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.3)',
+              color: 'var(--accent-green)', fontSize: isMobile ? '0.72rem' : '0.8rem', fontWeight: 600, cursor: 'pointer',
+            }}
+          >
+            <LayoutDashboard size={13} />
+            {!isMobile && 'My Plan'}
           </button>
 
           <button
@@ -417,7 +431,7 @@ export const SearchHome: React.FC<Props> = ({ onModuleLoad, onOpenPlanner, onOpe
         }}>
           {[
             { icon: <BrainCircuit size={22} color="var(--accent-blue)" />, title: 'AI-Powered Lessons', desc: 'Interactive explanations tailored to your level with real-time simulations.', action: () => inputRef.current?.focus() },
-            { icon: <Zap size={22} color="var(--accent-purple)" />, title: 'Smart Study Plans', desc: 'Personalised schedules for JEE, NEET, and CBSE with adaptive tracking.', action: onOpenPlanner },
+            { icon: <Zap size={22} color="var(--accent-purple)" />, title: 'Smart Study Plans', desc: 'Personalised schedules for JEE, NEET, and CBSE with adaptive tracking.', action: onOpenDashboard },
             { icon: <BarChart3 size={22} color="var(--accent-green)" />, title: 'Test Analysis', desc: 'Upload your results and get AI-driven insights on where to improve.', action: onOpenAnalyser },
           ].map((card) => (
             <div key={card.title} className="feature-card" onClick={card.action} style={{
