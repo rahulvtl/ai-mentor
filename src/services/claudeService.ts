@@ -494,41 +494,18 @@ export async function generateSimulation(
 
   const client = new Groq({ apiKey, dangerouslyAllowBrowser: true });
 
-  const systemPrompt = `You are an expert physics/science simulation developer. You create beautiful, interactive educational simulations using p5.js.
+  const systemPrompt = `You build interactive p5.js simulations. Return ONLY a complete HTML page (no markdown, no code fences). Start with <!DOCTYPE html>, end with </html>.
 
-Your output must be a COMPLETE, self-contained HTML page that:
-- Loads p5.js from CDN: https://cdn.jsdelivr.net/npm/p5@1.11.3/lib/p5.min.js
-- Uses dark theme (background: #07111f, text: white/light colors)
-- Has interactive controls (sliders, buttons) styled with modern dark UI
-- Shows real-time readouts/metrics relevant to the simulation
-- Uses accurate physics/math (RK4 or Euler integration where applicable)
-- Is responsive (uses windowWidth/windowHeight or percentages)
-- Includes a title and brief explanation text
-- Uses the Inter font from Google Fonts
-
-Style guidelines:
-- Panel backgrounds: rgba(13,28,50,0.96)
-- Accent color: #4f8dff (blue), #8d63ff (purple), #20c997 (green)
-- Border: rgba(255,255,255,0.1)
-- Border radius: 12-16px
-- Clean, modern aesthetic similar to a premium dashboard
-
-Return ONLY the complete HTML — no markdown, no explanation, no code fences. Start with <!DOCTYPE html> and end with </html>.`;
+Requirements: load p5.js from https://cdn.jsdelivr.net/npm/p5@1.11.3/lib/p5.min.js, dark theme (#07111f bg, white text), 2-3 interactive sliders, live readouts, accurate physics/math, responsive layout. Accent: #4f8dff blue.`;
 
   const userPrompt =
-    `Create an interactive p5.js simulation for: "${topic}"\n\n` +
-    (context ? `Context about this topic:\n${context.slice(0, 800)}\n\n` : '') +
-    `The simulation should:\n` +
-    `1. Visually demonstrate the core concept with animation\n` +
-    `2. Have 2-4 interactive sliders/controls that affect the simulation\n` +
-    `3. Show live numerical readouts (measurements, values)\n` +
-    `4. Include a brief educational note explaining what the student is seeing\n` +
-    `5. Be scientifically/mathematically accurate\n\n` +
-    `Return the complete HTML page.`;
+    `Interactive p5.js simulation for: "${topic}". ` +
+    (context ? `Context: ${context.slice(0, 400)}. ` : '') +
+    `Include animated visualization, sliders that affect the simulation, numerical readouts, and a short educational note. Return complete HTML.`;
 
   const response = await client.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
-    max_tokens: 8000,
+    max_tokens: 4096,
     stream: false,
     messages: [
       { role: 'system', content: systemPrompt },
