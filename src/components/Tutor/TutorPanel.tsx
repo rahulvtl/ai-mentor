@@ -111,7 +111,6 @@ const nextId = () => `msg-${++msgCounter}-${Date.now()}`;
 
 export const TutorPanel: React.FC<TutorPanelProps> = ({
   studentState,
-  goal,
   topic,
   articleDescription,
   articleImage,
