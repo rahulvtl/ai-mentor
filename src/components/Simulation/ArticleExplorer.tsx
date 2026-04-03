@@ -118,52 +118,48 @@ export const ArticleExplorer: React.FC<Props> = ({ module, onStateChange }) => {
       className="animate-fade-in"
       style={{ width: '100%', height: '100%', overflowY: 'auto', background: 'var(--bg-primary)' }}
     >
-      {/* ── Hero ── */}
-      <div
-        style={{
-          position: 'relative',
-          minHeight: module.articleImage ? '220px' : '120px',
-          maxHeight: '320px',
-          background: module.articleImage
-            ? `#0d1117 url(${module.articleImage}) center top/contain no-repeat`
-            : 'linear-gradient(135deg, var(--accent-blue) 0%, var(--accent-purple) 100%)',
-          display: 'flex',
-          flexDirection: 'column',
-          justifyContent: 'flex-end',
-          padding: '2rem',
-        }}
-      >
-        {/* Gradient overlay */}
-        <div
-          style={{
-            position: 'absolute', inset: 0,
-            background: 'linear-gradient(to top, rgba(10,10,15,0.92) 0%, rgba(10,10,15,0.4) 40%, transparent 70%)',
-          }}
-        />
-        <div style={{ position: 'relative', zIndex: 1 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <BookOpen size={14} color="rgba(255,255,255,0.6)" />
-            <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.6)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              Article
-            </span>
-            <span style={{ color: 'rgba(255,255,255,0.3)' }}>·</span>
-            <Clock size={12} color="rgba(255,255,255,0.6)" />
-            <span style={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.6)' }}>{mins} min read</span>
-          </div>
-          <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0, lineHeight: 1.2, color: 'white', letterSpacing: '-0.02em' }}>
-            {module.topic}
-          </h1>
-          {module.articleUrl && (
-            <a
-              href={module.articleUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.6rem', fontSize: '0.73rem', color: 'rgba(255,255,255,0.55)', textDecoration: 'none' }}
-            >
-              <ExternalLink size={11} /> Open on Wikipedia
-            </a>
-          )}
+      {/* ── Hero image ── */}
+      {module.articleImage && (
+        <div style={{
+          background: '#0d1117',
+          display: 'flex', justifyContent: 'center',
+          padding: '1.5rem 2rem 0',
+        }}>
+          <img
+            src={module.articleImage}
+            alt={module.topic}
+            style={{
+              maxWidth: '100%', maxHeight: '280px',
+              objectFit: 'contain', borderRadius: '8px',
+            }}
+          />
         </div>
+      )}
+
+      {/* ── Title bar ── */}
+      <div style={{ padding: '1.25rem 2rem 0' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+          <BookOpen size={14} color="var(--text-secondary)" />
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+            Article
+          </span>
+          <span style={{ color: 'var(--text-secondary)', opacity: 0.4 }}>·</span>
+          <Clock size={12} color="var(--text-secondary)" />
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)' }}>{mins} min read</span>
+        </div>
+        <h1 style={{ fontSize: '2rem', fontWeight: 800, margin: 0, lineHeight: 1.2, color: 'var(--text-primary, white)', letterSpacing: '-0.02em' }}>
+          {module.topic}
+        </h1>
+        {module.articleUrl && (
+          <a
+            href={module.articleUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.3rem', marginTop: '0.6rem', fontSize: '0.73rem', color: 'var(--text-secondary)', textDecoration: 'none' }}
+          >
+            <ExternalLink size={11} /> Open on Wikipedia
+          </a>
+        )}
       </div>
 
       {/* ── Body ── */}
