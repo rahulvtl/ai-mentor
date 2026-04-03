@@ -358,24 +358,6 @@ export const TutorPanel: React.FC<TutorPanelProps> = ({
             </p>
           </div>
 
-          <div
-            style={{
-              marginLeft: 'auto',
-              background: 'var(--bg-tertiary)',
-              border: '1px solid var(--border-color)',
-              borderRadius: '20px',
-              padding: '0.25rem 0.65rem',
-              fontSize: '0.72rem',
-              color: 'var(--text-secondary)',
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              maxWidth: '130px',
-            }}
-            title={goal}
-          >
-            {goal}
-          </div>
         </div>
 
         {/* Tabs */}
