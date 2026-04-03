@@ -83,7 +83,7 @@ export const LiveSimulation: React.FC<Props> = ({ module, onStateChange }) => {
         <iframe
           ref={iframeRef}
           src={blobUrl}
-          sandbox="allow-scripts"
+          sandbox="allow-scripts allow-same-origin"
           style={{ width: '100%', flex: 1, border: 'none', background: '#07111f' }}
           title={`${module.topic} simulation`}
           onLoad={() => URL.revokeObjectURL(blobUrl)}
