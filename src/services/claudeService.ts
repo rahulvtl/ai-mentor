@@ -481,6 +481,73 @@ export async function generateMapMarkers(
   }
 }
 
+/**
+ * Generates a self-contained p5.js simulation for a given topic.
+ * Returns full HTML that can be rendered inside a sandboxed iframe.
+ */
+export async function generateSimulation(
+  topic: string,
+  context: string
+): Promise<string> {
+  const apiKey = import.meta.env.VITE_GROQ_API_KEY;
+  if (!apiKey) throw new Error('VITE_GROQ_API_KEY is not set.');
+
+  const client = new Groq({ apiKey, dangerouslyAllowBrowser: true });
+
+  const systemPrompt = `You are an expert physics/science simulation developer. You create beautiful, interactive educational simulations using p5.js.
+
+Your output must be a COMPLETE, self-contained HTML page that:
+- Loads p5.js from CDN: https://cdn.jsdelivr.net/npm/p5@1.11.3/lib/p5.min.js
+- Uses dark theme (background: #07111f, text: white/light colors)
+- Has interactive controls (sliders, buttons) styled with modern dark UI
+- Shows real-time readouts/metrics relevant to the simulation
+- Uses accurate physics/math (RK4 or Euler integration where applicable)
+- Is responsive (uses windowWidth/windowHeight or percentages)
+- Includes a title and brief explanation text
+- Uses the Inter font from Google Fonts
+
+Style guidelines:
+- Panel backgrounds: rgba(13,28,50,0.96)
+- Accent color: #4f8dff (blue), #8d63ff (purple), #20c997 (green)
+- Border: rgba(255,255,255,0.1)
+- Border radius: 12-16px
+- Clean, modern aesthetic similar to a premium dashboard
+
+Return ONLY the complete HTML — no markdown, no explanation, no code fences. Start with <!DOCTYPE html> and end with </html>.`;
+
+  const userPrompt =
+    `Create an interactive p5.js simulation for: "${topic}"\n\n` +
+    (context ? `Context about this topic:\n${context.slice(0, 800)}\n\n` : '') +
+    `The simulation should:\n` +
+    `1. Visually demonstrate the core concept with animation\n` +
+    `2. Have 2-4 interactive sliders/controls that affect the simulation\n` +
+    `3. Show live numerical readouts (measurements, values)\n` +
+    `4. Include a brief educational note explaining what the student is seeing\n` +
+    `5. Be scientifically/mathematically accurate\n\n` +
+    `Return the complete HTML page.`;
+
+  const response = await client.chat.completions.create({
+    model: 'llama-3.3-70b-versatile',
+    max_tokens: 8000,
+    stream: false,
+    messages: [
+      { role: 'system', content: systemPrompt },
+      { role: 'user', content: userPrompt },
+    ],
+  });
+
+  let html = response.choices[0]?.message?.content ?? '';
+
+  // Strip markdown code fences if the model wrapped the output
+  html = html.replace(/^```html?\s*\n?/i, '').replace(/\n?```\s*$/i, '').trim();
+
+  if (!html.startsWith('<!DOCTYPE') && !html.startsWith('<html')) {
+    throw new Error('Invalid simulation output — expected HTML.');
+  }
+
+  return html;
+}
+
 /** Formats student workspace state into a readable sentence for the system prompt. */
 export function buildStudentStateContext(state: Record<string, unknown>): string {
   if (!state || Object.keys(state).length === 0) return '';

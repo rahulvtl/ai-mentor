@@ -234,48 +234,59 @@ export class AiService {
           }
         }
 
-        if (results.length > 0) {
-          const topResultTitle = results[0].title;
-          extTopicTitle = topResultTitle;
+        // Prefer educational/science articles over pop-culture when disambiguation exists
+        const ACADEMIC_HINTS = /\(biology\)|\(chemistry\)|\(physics\)|\(mathematics\)|\(science\)|\(anatomy\)|\(medicine\)|\(botany\)|\(zoology\)|\(genetics\)|\(ecology\)|\(astronomy\)|\(geology\)|\(computing\)|\(economics\)/i;
+        const candidates = results.slice(0, 8);
+        candidates.sort((a, b) => {
+          const aAcademic = ACADEMIC_HINTS.test(a.title) ? 0 : 1;
+          const bAcademic = ACADEMIC_HINTS.test(b.title) ? 0 : 1;
+          return aAcademic - bAcademic;
+        });
 
-          // 1. Summary (existing)
+        // Try top results, skipping disambiguation pages
+        for (const result of candidates) {
+          const candidateTitle = result.title;
+
           const summaryRes = await fetch(
-            `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(topResultTitle)}?origin=*`
+            `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(candidateTitle)}?origin=*`
           );
-          if (summaryRes.ok) {
-            const data = await summaryRes.json();
-            if (data.type !== 'disambiguation' && data.extract) {
-              extDescription = data.extract;
-              extImage = data.thumbnail?.source;
-              extUrl = data.content_urls?.desktop?.page;
+          if (!summaryRes.ok) continue;
 
-              // 2. Full sections (new — only when we have a real article)
-              try {
-                const sectionsRes = await fetch(
-                  `https://en.wikipedia.org/api/rest_v1/page/mobile-sections/${encodeURIComponent(topResultTitle)}?origin=*`
-                );
-                if (sectionsRes.ok) {
-                  const sectionsData = await sectionsRes.json();
-                  const rawSections: { line?: string; text?: string; anchor?: string; toclevel?: number }[] =
-                    sectionsData.remaining?.sections ?? [];
+          const data = await summaryRes.json();
+          if (data.type === 'disambiguation' || !data.extract) continue;
 
-                  const SKIP = /^(references|see also|external links|notes|further reading|bibliography|footnotes)/i;
-                  const sections: WikiArticleSection[] = [];
+          extTopicTitle = candidateTitle;
+          extDescription = data.extract;
+          extImage = data.thumbnail?.source;
+          extUrl = data.content_urls?.desktop?.page;
 
-                  for (const sec of rawSections) {
-                    if ((sec.toclevel ?? 99) > 1) continue; // top-level only
-                    const title = this.stripHtml(sec.line ?? '');
-                    if (!title || SKIP.test(title)) continue;
-                    const text = this.stripHtml(sec.text ?? '');
-                    if (text.length < 30) continue;
-                    sections.push({ title, text: text.slice(0, 900), anchor: sec.anchor ?? '' });
-                    if (sections.length >= 8) break;
-                  }
-                  if (sections.length > 0) extWikiSections = sections;
-                }
-              } catch { /* sections are optional — silently skip */ }
+          // Full sections (only when we have a real article)
+          try {
+            const sectionsRes = await fetch(
+              `https://en.wikipedia.org/api/rest_v1/page/mobile-sections/${encodeURIComponent(candidateTitle)}?origin=*`
+            );
+            if (sectionsRes.ok) {
+              const sectionsData = await sectionsRes.json();
+              const rawSections: { line?: string; text?: string; anchor?: string; toclevel?: number }[] =
+                sectionsData.remaining?.sections ?? [];
+
+              const SKIP = /^(references|see also|external links|notes|further reading|bibliography|footnotes)/i;
+              const sections: WikiArticleSection[] = [];
+
+              for (const sec of rawSections) {
+                if ((sec.toclevel ?? 99) > 1) continue; // top-level only
+                const title = this.stripHtml(sec.line ?? '');
+                if (!title || SKIP.test(title)) continue;
+                const text = this.stripHtml(sec.text ?? '');
+                if (text.length < 30) continue;
+                sections.push({ title, text: text.slice(0, 900), anchor: sec.anchor ?? '' });
+                if (sections.length >= 8) break;
+              }
+              if (sections.length > 0) extWikiSections = sections;
             }
-          }
+          } catch { /* sections are optional — silently skip */ }
+
+          break; // found a valid article, stop trying
         }
       }
     } catch (error) {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { FileText, Clock, Map } from 'lucide-react';
+import { FileText, Clock, Map, Play } from 'lucide-react';
 import { FormulaExplorer } from './FormulaExplorer';
 import { InteractivePythagoras } from './InteractivePythagoras';
 import { InteractiveAngles } from './InteractiveAngles';
@@ -7,6 +7,7 @@ import { InteractiveRectangleArea } from './InteractiveRectangleArea';
 import { ArticleExplorer } from './ArticleExplorer';
 import { TimelineWorkspace } from './TimelineWorkspace';
 import { MapWorkspace } from './MapWorkspace';
+import { LiveSimulation } from './LiveSimulation';
 import type { LearningModule } from '../../services/AiService';
 
 interface Props {
@@ -14,12 +15,13 @@ interface Props {
   onStateChange: (state: any) => void;
 }
 
-type ViewMode = 'article' | 'timeline' | 'map';
+type ViewMode = 'article' | 'timeline' | 'map' | 'simulation';
 
 const VIEW_OPTIONS: { key: ViewMode; label: string; icon: React.ReactNode }[] = [
-  { key: 'article',  label: 'Article',  icon: <FileText size={13} /> },
-  { key: 'timeline', label: 'Timeline', icon: <Clock size={13} /> },
-  { key: 'map',      label: 'Map',      icon: <Map size={13} /> },
+  { key: 'article',    label: 'Article',    icon: <FileText size={13} /> },
+  { key: 'timeline',   label: 'Timeline',   icon: <Clock size={13} /> },
+  { key: 'map',        label: 'Map',        icon: <Map size={13} /> },
+  { key: 'simulation', label: 'Simulate',   icon: <Play size={13} /> },
 ];
 
 /** Whether a module supports the view switcher (non-STEM content types) */
@@ -74,7 +76,7 @@ export const DynamicWorkspace: React.FC<Props> = ({ module, onStateChange }) => 
       <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
         {/* View switcher bar */}
         <div style={{
-          display: 'flex', alignItems: 'center', gap: '0.4rem',
+          display: 'flex', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap',
           padding: '0.5rem 1.25rem', background: 'var(--bg-secondary)',
           borderBottom: '1px solid var(--border-color)', flexShrink: 0,
         }}>
@@ -99,9 +101,10 @@ export const DynamicWorkspace: React.FC<Props> = ({ module, onStateChange }) => 
 
         {/* Content */}
         <div style={{ flex: 1, overflow: 'hidden' }}>
-          {activeView === 'article'  && <ArticleExplorer  module={module} onStateChange={onStateChange} />}
-          {activeView === 'timeline' && <TimelineWorkspace module={module} onStateChange={onStateChange} />}
-          {activeView === 'map'      && <MapWorkspace      module={module} onStateChange={onStateChange} />}
+          {activeView === 'article'    && <ArticleExplorer  module={module} onStateChange={onStateChange} />}
+          {activeView === 'timeline'   && <TimelineWorkspace module={module} onStateChange={onStateChange} />}
+          {activeView === 'map'        && <MapWorkspace      module={module} onStateChange={onStateChange} />}
+          {activeView === 'simulation' && <LiveSimulation    module={module} onStateChange={onStateChange} />}
         </div>
       </div>
     );
