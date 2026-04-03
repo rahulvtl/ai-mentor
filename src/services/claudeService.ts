@@ -494,48 +494,110 @@ export async function generateSimulation(
 
   const client = new Groq({ apiKey, dangerouslyAllowBrowser: true });
 
-  const systemPrompt = `You create interactive p5.js physics simulations. Return ONLY complete HTML. No markdown, no code fences, no explanations.
+  const systemPrompt = `You create beautiful, polished p5.js physics simulations. Return ONLY complete HTML. No markdown, no code fences, no explanations.
 
-RULES:
-1. The draw() function MUST animate objects every frame — moving shapes, particles, trails, physics.
-2. Declare physics state variables (position, velocity, angle, etc.) as globals and update them in draw().
-3. Include 2-3 sliders that control simulation parameters, linked via document.getElementById().
-4. Use accurate physics formulas for the topic.
-5. Use the FULL canvas for the animation. Controls overlay on top.
+DESIGN RULES:
+1. TWO-PANEL LAYOUT: Left panel (fixed, 280px) for controls. Right area for the p5.js canvas.
+2. LEFT PANEL: Dark glass card with title, description (1 line), labeled sliders (2-4), Pause/Reset buttons, and a stats section at the bottom showing 2-3 live values.
+3. CANVAS AREA: Use a p5 canvas that fills the right side. Draw a subtle dot grid or fine grid pattern on the background for texture. Center the simulation in the canvas.
+4. ANIMATION: Global state vars, update physics every frame in draw(), draw shapes with glow effects and motion trails.
+5. TRAILS: Store last 40+ positions in an array, draw them as fading circles/lines for smooth motion trails.
+6. COLORS: Use a blue-cyan-white palette. Glowing effects with shadow blur. The bob/object should have a radial gradient glow.
+7. STATS: Show 2-3 real-time computed values (angle, velocity, energy, etc.) in styled cards at the bottom of the left panel.
+8. Use accurate physics formulas.
 
-EXAMPLE — a complete working pendulum simulation:
+COMPLETE EXAMPLE:
 <!DOCTYPE html>
 <html><head>
 <script src="https://cdn.jsdelivr.net/npm/p5@1.11.3/lib/p5.min.js"></script>
-<style>body{margin:0;background:#07111f;color:#eee;font-family:sans-serif;overflow:hidden}
-.controls{position:fixed;top:10px;left:10px;background:rgba(13,28,50,0.95);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);font-size:13px;z-index:10}
-.controls label{display:block;margin:6px 0;color:#a6b5cf}
-.controls input[type=range]{width:160px;accent-color:#4f8dff}
-.val{color:#4f8dff;font-weight:bold}
+<style>
+*{margin:0;box-sizing:border-box}
+body{background:#0a1628;color:#e0e8f0;font-family:'Segoe UI',system-ui,sans-serif;overflow:hidden;display:flex;height:100vh}
+.panel{width:280px;min-width:280px;background:linear-gradient(180deg,rgba(15,25,50,0.98),rgba(10,18,35,0.98));border-right:1px solid rgba(100,160,255,0.1);padding:20px;display:flex;flex-direction:column;gap:16px;overflow-y:auto}
+.panel h2{font-size:1.25rem;font-weight:700;color:#fff;margin:0}
+.panel .desc{font-size:0.78rem;color:#7a8ba8;line-height:1.4;margin:0}
+.section-label{font-size:0.65rem;text-transform:uppercase;letter-spacing:1.5px;color:#4a6a8a;font-weight:600;margin-top:4px}
+.slider-group{display:flex;flex-direction:column;gap:2px}
+.slider-row{display:flex;justify-content:space-between;align-items:center;font-size:0.82rem;color:#a0b4cc}
+.slider-row .val{color:#5b9fff;font-weight:700;font-size:0.85rem}
+input[type=range]{-webkit-appearance:none;width:100%;height:5px;border-radius:4px;background:rgba(80,140,255,0.15);outline:none;margin-top:2px}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:#5b9fff;cursor:pointer;box-shadow:0 0 8px rgba(91,159,255,0.5)}
+.btn-row{display:flex;gap:8px}
+.btn{flex:1;padding:8px 0;border:none;border-radius:8px;font-family:inherit;font-size:0.8rem;font-weight:600;cursor:pointer;transition:background 0.2s}
+.btn-pause{background:rgba(91,159,255,0.15);color:#5b9fff;border:1px solid rgba(91,159,255,0.3)}
+.btn-reset{background:rgba(255,100,100,0.12);color:#ff7b7b;border:1px solid rgba(255,100,100,0.25)}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:auto}
+.stat{background:rgba(91,159,255,0.06);border:1px solid rgba(91,159,255,0.1);border-radius:8px;padding:8px 10px;text-align:center}
+.stat .label{font-size:0.6rem;text-transform:uppercase;letter-spacing:1px;color:#5a7a9a}
+.stat .value{font-size:1.05rem;font-weight:700;color:#fff;margin-top:2px}
+#canvas-container{flex:1;position:relative}
 </style></head><body>
-<div class="controls"><h3 style="margin:0 0 8px;color:#fff">Pendulum</h3>
-<label>Length: <span class="val" id="lv">200</span><br><input type="range" id="len" min="80" max="350" value="200" oninput="document.getElementById('lv').textContent=this.value"></label>
-<label>Gravity: <span class="val" id="gv">1.0</span><br><input type="range" id="grav" min="1" max="30" value="10" oninput="document.getElementById('gv').textContent=(this.value/10).toFixed(1)"></label>
+<div class="panel">
+<h2>Pendulum</h2>
+<p class="desc">Simple pendulum with damping and trail</p>
+<div class="section-label">Parameters</div>
+<div class="slider-group">
+<div class="slider-row"><span>Length</span><span class="val" id="lv">200 px</span></div>
+<input type="range" id="len" min="80" max="350" value="200" oninput="document.getElementById('lv').textContent=this.value+' px'">
 </div>
+<div class="slider-group">
+<div class="slider-row"><span>Gravity</span><span class="val" id="gv">9.8 m/s²</span></div>
+<input type="range" id="grav" min="1" max="30" value="10" oninput="document.getElementById('gv').textContent=(this.value*9.8/10).toFixed(1)+' m/s²'">
+</div>
+<div class="slider-group">
+<div class="slider-row"><span>Damping</span><span class="val" id="dv">0.995</span></div>
+<input type="range" id="damp" min="980" max="1000" value="995" oninput="document.getElementById('dv').textContent=(this.value/1000).toFixed(3)">
+</div>
+<div class="btn-row">
+<button class="btn btn-pause" id="pauseBtn" onclick="paused=!paused;this.textContent=paused?'Play':'Pause'">Pause</button>
+<button class="btn btn-reset" onclick="angle=PI/4;aVel=0;trail=[]">Reset</button>
+</div>
+<div class="section-label">Live Stats</div>
+<div class="stats">
+<div class="stat"><div class="label">Angle</div><div class="value" id="s1">35.0°</div></div>
+<div class="stat"><div class="label">Velocity</div><div class="value" id="s2">0.00</div></div>
+<div class="stat"><div class="label">Period</div><div class="value" id="s3">2.84 s</div></div>
+<div class="stat"><div class="label">Energy</div><div class="value" id="s4">1.00</div></div>
+</div>
+</div>
+<div id="canvas-container"></div>
 <script>
-let angle=Math.PI/4,aVel=0;
-function setup(){createCanvas(windowWidth,windowHeight)}
-function windowResized(){resizeCanvas(windowWidth,windowHeight)}
+let angle=PI/4,aVel=0,paused=false,trail=[];
+function setup(){let c=createCanvas(windowWidth-280,windowHeight);c.parent('canvas-container')}
+function windowResized(){resizeCanvas(windowWidth-280,windowHeight)}
 function draw(){
-  background(7,17,31);
+  background(10,22,40);
+  // dot grid
+  stroke(255,8);strokeWeight(1);
+  for(let x=0;x<width;x+=30)for(let y=0;y<height;y+=30)point(x,y);
   let L=+document.getElementById('len').value;
-  let g=document.getElementById('grav').value/10;
-  let aAcc=-g/L*sin(angle);
-  aVel+=aAcc; aVel*=0.999; angle+=aVel;
-  let ox=width/2, oy=height*0.18;
-  let bx=ox+L*sin(angle), by=oy+L*cos(angle);
-  stroke(100,160,255,80); strokeWeight(2); line(ox,oy,bx,by);
-  fill(80,160,255); noStroke(); circle(bx,by,30);
-  fill(200); circle(ox,oy,8);
+  let g=document.getElementById('grav').value*9.8/10;
+  let d=document.getElementById('damp').value/1000;
+  if(!paused){let aAcc=-g/L*sin(angle);aVel+=aAcc;aVel*=d;angle+=aVel;}
+  let ox=width/2,oy=height*0.15;
+  let bx=ox+L*sin(angle),by=oy+L*cos(angle);
+  trail.push({x:bx,y:by});if(trail.length>50)trail.shift();
+  // trail
+  noStroke();
+  for(let i=0;i<trail.length;i++){let a=map(i,0,trail.length,0,180);fill(91,159,255,a*0.4);circle(trail[i].x,trail[i].y,map(i,0,trail.length,3,10));}
+  // rod
+  stroke(180,210,240,120);strokeWeight(2);line(ox,oy,bx,by);
+  // anchor
+  fill(200);noStroke();circle(ox,oy,10);
+  // bob glow
+  drawingContext.shadowBlur=25;drawingContext.shadowColor='rgba(91,159,255,0.6)';
+  fill(91,159,255);circle(bx,by,28);
+  drawingContext.shadowBlur=0;
+  fill(140,190,255);circle(bx,by,14);
+  // stats
+  document.getElementById('s1').textContent=(degrees(angle)%360).toFixed(1)+'°';
+  document.getElementById('s2').textContent=aVel.toFixed(3)+' rad/s';
+  document.getElementById('s3').textContent=(2*PI*sqrt(L/g)/60).toFixed(2)+' s';
+  document.getElementById('s4').textContent=(0.5*aVel*aVel*L*L+g*L*(1-cos(angle))).toFixed(2);
 }
 </script></body></html>
 
-Follow this exact pattern: global state vars, physics updates in draw(), shapes drawn every frame. Adapt the physics and visuals to the requested topic. Make it visually impressive with colors, trails, or particles where appropriate.`;
+Adapt this pattern to any topic. Keep the two-panel layout, glass-card styling, dot-grid background, glow effects, motion trails, and live stats. Change the physics, shapes, and parameters to match the requested simulation.`;
 
   const userPrompt =
     `Create animated p5.js simulation: "${topic}". ` +
@@ -544,7 +606,7 @@ Follow this exact pattern: global state vars, physics updates in draw(), shapes 
 
   const response = await client.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
-    max_tokens: 6000,
+    max_tokens: 8000,
     stream: false,
     messages: [
       { role: 'system', content: systemPrompt },
