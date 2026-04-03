@@ -494,18 +494,39 @@ export async function generateSimulation(
 
   const client = new Groq({ apiKey, dangerouslyAllowBrowser: true });
 
-  const systemPrompt = `You build interactive p5.js simulations. Return ONLY a complete HTML page (no markdown, no code fences). Start with <!DOCTYPE html>, end with </html>.
+  const systemPrompt = `You create p5.js simulations. Return ONLY complete HTML. No markdown, no code fences.
 
-Requirements: load p5.js from https://cdn.jsdelivr.net/npm/p5@1.11.3/lib/p5.min.js, dark theme (#07111f bg, white text), 2-3 interactive sliders, live readouts, accurate physics/math, responsive layout. Accent: #4f8dff blue.`;
+CRITICAL: The p5.js canvas with ANIMATED VISUALS is the most important part. Prioritize the draw() function with moving graphics FIRST. Controls are secondary.
+
+Template:
+<!DOCTYPE html>
+<html><head>
+<script src="https://cdn.jsdelivr.net/npm/p5@1.11.3/lib/p5.min.js"></script>
+<style>body{margin:0;background:#07111f;color:#eee;font-family:sans-serif;overflow:hidden}
+.controls{position:fixed;top:10px;left:10px;background:rgba(13,28,50,0.95);padding:12px;border-radius:12px;border:1px solid rgba(255,255,255,0.1);font-size:13px;z-index:10}
+.controls label{display:block;margin:6px 0;color:#a6b5cf}
+.controls input[type=range]{width:160px;accent-color:#4f8dff}
+.val{color:#4f8dff;font-weight:bold}
+</style></head><body>
+<div class="controls"><h3 style="margin:0 0 8px;color:#fff">Title</h3>
+<!-- 2-3 labeled sliders with id and oninput updating span -->
+</div>
+<script>
+function setup(){createCanvas(windowWidth,windowHeight)}
+function windowResized(){resizeCanvas(windowWidth,windowHeight)}
+function draw(){background(7,17,31); /* ANIMATED PHYSICS HERE */ }
+</script></body></html>
+
+Use this template structure. The draw() function MUST contain animated visuals (shapes, motion, trails). Use accurate physics.`;
 
   const userPrompt =
-    `Interactive p5.js simulation for: "${topic}". ` +
-    (context ? `Context: ${context.slice(0, 400)}. ` : '') +
-    `Include animated visualization, sliders that affect the simulation, numerical readouts, and a short educational note. Return complete HTML.`;
+    `Create animated p5.js simulation: "${topic}". ` +
+    (context ? `(${context.slice(0, 200)}) ` : '') +
+    `MUST have visible moving animation in draw(). Use full canvas. Return complete HTML only.`;
 
   const response = await client.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
-    max_tokens: 4096,
+    max_tokens: 6000,
     stream: false,
     messages: [
       { role: 'system', content: systemPrompt },
