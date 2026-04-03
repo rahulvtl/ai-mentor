@@ -123,7 +123,7 @@ export const ArticleExplorer: React.FC<Props> = ({ module, onStateChange }) => {
         <div style={{
           background: '#0d1117',
           display: 'flex', justifyContent: 'center',
-          padding: '1.5rem 2rem 0',
+          padding: '1rem 2rem 0',
         }}>
           <img
             src={module.articleImage}
@@ -137,7 +137,7 @@ export const ArticleExplorer: React.FC<Props> = ({ module, onStateChange }) => {
       )}
 
       {/* ── Title bar ── */}
-      <div style={{ padding: '1.25rem 2rem 0' }}>
+      <div style={{ padding: '0.75rem 2rem 0' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
           <BookOpen size={14} color="var(--text-secondary)" />
           <span style={{ fontSize: '0.72rem', color: 'var(--text-secondary)', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
@@ -163,7 +163,7 @@ export const ArticleExplorer: React.FC<Props> = ({ module, onStateChange }) => {
       </div>
 
       {/* ── Body ── */}
-      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '2rem 2rem 4rem' }}>
+      <div style={{ maxWidth: '800px', margin: '0 auto', padding: '1rem 2rem 4rem' }}>
 
         {/* Key Points card */}
         {keyPoints.length > 0 && (
