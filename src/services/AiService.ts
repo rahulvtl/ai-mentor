@@ -1,5 +1,4 @@
 import { PHET_SIMULATIONS } from './phetIndex';
-import { VISIBLE_BODY_RESOURCES } from './visibleBodyIndex';
 import { duckDuckGoSearch, type SearchResult } from './searchService';
 export type { SearchResult };
 
@@ -160,13 +159,6 @@ export class AiService {
 
     return null;
   }
-  private static getVisibleBodyMatch(query: string) {
-    const q = query.toLowerCase();
-    return VISIBLE_BODY_RESOURCES.find(res => 
-      res.keywords.some(k => q.includes(k) || k.includes(q))
-    );
-  }
-
   private static getPhetMatch(lowerQuery: string): LearningModule | null {
     const exactMatch = PHET_SIMULATIONS.find(sim => sim.title.toLowerCase() === lowerQuery);
     if (exactMatch) {
@@ -297,21 +289,6 @@ export class AiService {
       if (!predefined.articleUrl) predefined.articleUrl = extUrl;
       if (extWikiSections) predefined.wikiSections = extWikiSections;
       return predefined;
-    }
-
-    const vbMatch = this.getVisibleBodyMatch(query);
-    if (vbMatch) {
-      return {
-        topic: vbMatch.title,
-        type: 'theoretical',
-        info: `Interactive 3D anatomical model provided by Visible Body.`,
-        iframeUrl: vbMatch.url,
-        goal: `Explore the 3D structure of ${vbMatch.title}.`,
-        articleDescription: extDescription,
-        articleImage: extImage,
-        articleUrl: extUrl,
-        wikiSections: extWikiSections,
-      };
     }
 
     const phetMatch = this.getPhetMatch(lowerQuery);
