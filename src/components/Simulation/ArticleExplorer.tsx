@@ -137,7 +137,7 @@ export const ArticleExplorer: React.FC<Props> = ({ module, onStateChange }) => {
         <div
           style={{
             position: 'absolute', inset: 0,
-            background: 'linear-gradient(to top, rgba(10,10,15,0.95) 0%, rgba(10,10,15,0.5) 60%, rgba(10,10,15,0.1) 100%)',
+            background: 'linear-gradient(to top, rgba(10,10,15,0.92) 0%, rgba(10,10,15,0.4) 40%, transparent 70%)',
           }}
         />
         <div style={{ position: 'relative', zIndex: 1 }}>

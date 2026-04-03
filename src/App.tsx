@@ -9,7 +9,7 @@ import { AuthModal } from './components/Auth/AuthModal';
 import { useAuth } from './contexts/AuthContext';
 import { AiService, type LearningModule } from './services/AiService';
 import { recordStudySession } from './services/studyDataService';
-import { BrainCircuit, ArrowLeft, Bot, CalendarDays, FlaskConical, X } from 'lucide-react';
+import { BrainCircuit, ArrowLeft, Bot, CalendarDays, FlaskConical, X, PanelRightClose, PanelRightOpen } from 'lucide-react';
 import './index.css';
 
 // Touch device = mobile regardless of orientation (portrait or landscape)
@@ -25,6 +25,7 @@ function App() {
   const [showAnalyser, setShowAnalyser] = useState(false);
   const [tutorOpen, setTutorOpen] = useState(false);   // animation state
   const [tutorMounted, setTutorMounted] = useState(false); // DOM presence
+  const [desktopPanelOpen, setDesktopPanelOpen] = useState(true);
   const isMobile = isMobileDevice();
 
   const openTutor = () => {
@@ -209,21 +210,77 @@ function App() {
           </>
         ) : (
           <>
-            {/* Desktop: side-by-side */}
-            <div style={{ flex: '1 1 60%', position: 'relative', overflow: 'auto', background: 'var(--bg-primary)' }}>
+            {/* Desktop: side-by-side with collapsible panel */}
+            <div style={{ flex: 1, position: 'relative', overflow: 'auto', background: 'var(--bg-primary)' }}>
               <DynamicWorkspace module={activeModule} onStateChange={setStudentState} />
             </div>
-            <div className="animate-slide-in-right" style={{ flex: '1 1 40%', flexBasis: '40%', minWidth: '350px', maxWidth: '500px', overflow: 'hidden', borderLeft: '1px solid var(--border-color)', background: 'var(--bg-secondary)', boxShadow: '-10px 0 30px rgba(0,0,0,0.2)', zIndex: 5, display: 'flex', flexDirection: 'column' }}>
-              <TutorPanel
-                studentState={studentState}
-                goal={activeModule.goal}
-                topic={activeModule.topic}
-                articleDescription={activeModule.articleDescription}
-                articleImage={activeModule.articleImage}
-                articleUrl={activeModule.articleUrl}
-                searchResults={activeModule.searchResults}
-              />
+
+            {/* Tutor panel — slides in/out */}
+            <div style={{
+              position: 'relative',
+              width: desktopPanelOpen ? '420px' : '0px',
+              minWidth: desktopPanelOpen ? '350px' : '0px',
+              maxWidth: '500px',
+              overflow: 'hidden',
+              borderLeft: desktopPanelOpen ? '1px solid var(--border-color)' : 'none',
+              background: 'var(--bg-secondary)',
+              boxShadow: desktopPanelOpen ? '-10px 0 30px rgba(0,0,0,0.2)' : 'none',
+              zIndex: 5,
+              display: 'flex',
+              flexDirection: 'column',
+              transition: 'width 0.3s cubic-bezier(0.32, 0.72, 0, 1), min-width 0.3s cubic-bezier(0.32, 0.72, 0, 1)',
+            }}>
+              {/* Collapse button inside panel */}
+              {desktopPanelOpen && (
+                <button
+                  onClick={() => setDesktopPanelOpen(false)}
+                  title="Collapse panel"
+                  style={{
+                    position: 'absolute', top: '0.75rem', right: '0.75rem', zIndex: 10,
+                    width: '30px', height: '30px', borderRadius: '8px',
+                    background: 'var(--bg-tertiary)', border: '1px solid var(--border-color)',
+                    color: 'var(--text-secondary)', cursor: 'pointer',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}
+                >
+                  <PanelRightClose size={14} />
+                </button>
+              )}
+              <div style={{ flex: 1, overflow: 'hidden', display: 'flex', flexDirection: 'column', minWidth: '350px' }}>
+                <TutorPanel
+                  studentState={studentState}
+                  goal={activeModule.goal}
+                  topic={activeModule.topic}
+                  articleDescription={activeModule.articleDescription}
+                  articleImage={activeModule.articleImage}
+                  articleUrl={activeModule.articleUrl}
+                  searchResults={activeModule.searchResults}
+                />
+              </div>
             </div>
+
+            {/* Expand button — visible when panel is collapsed */}
+            {!desktopPanelOpen && (
+              <button
+                onClick={() => setDesktopPanelOpen(true)}
+                title="Open AI Tutor"
+                style={{
+                  position: 'fixed', right: 0, top: '50%', transform: 'translateY(-50%)',
+                  zIndex: 40, width: '40px', height: '80px',
+                  borderRadius: '12px 0 0 12px',
+                  background: 'linear-gradient(180deg, var(--accent-purple), var(--accent-blue))',
+                  border: 'none', cursor: 'pointer',
+                  display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '4px',
+                  boxShadow: '-4px 0 20px rgba(139,92,246,0.4)',
+                  transition: 'transform 0.15s ease',
+                }}
+                onMouseEnter={e => (e.currentTarget.style.width = '46px')}
+                onMouseLeave={e => (e.currentTarget.style.width = '40px')}
+              >
+                <Bot size={18} color="white" />
+                <PanelRightOpen size={14} color="white" />
+              </button>
+            )}
           </>
         )}
       </main>
