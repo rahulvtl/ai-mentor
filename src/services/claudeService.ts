@@ -494,11 +494,16 @@ export async function generateSimulation(
 
   const client = new Groq({ apiKey, dangerouslyAllowBrowser: true });
 
-  const systemPrompt = `You create p5.js simulations. Return ONLY complete HTML. No markdown, no code fences.
+  const systemPrompt = `You create interactive p5.js physics simulations. Return ONLY complete HTML. No markdown, no code fences, no explanations.
 
-CRITICAL: The p5.js canvas with ANIMATED VISUALS is the most important part. Prioritize the draw() function with moving graphics FIRST. Controls are secondary.
+RULES:
+1. The draw() function MUST animate objects every frame — moving shapes, particles, trails, physics.
+2. Declare physics state variables (position, velocity, angle, etc.) as globals and update them in draw().
+3. Include 2-3 sliders that control simulation parameters, linked via document.getElementById().
+4. Use accurate physics formulas for the topic.
+5. Use the FULL canvas for the animation. Controls overlay on top.
 
-Template:
+EXAMPLE — a complete working pendulum simulation:
 <!DOCTYPE html>
 <html><head>
 <script src="https://cdn.jsdelivr.net/npm/p5@1.11.3/lib/p5.min.js"></script>
@@ -508,21 +513,34 @@ Template:
 .controls input[type=range]{width:160px;accent-color:#4f8dff}
 .val{color:#4f8dff;font-weight:bold}
 </style></head><body>
-<div class="controls"><h3 style="margin:0 0 8px;color:#fff">Title</h3>
-<!-- 2-3 labeled sliders with id and oninput updating span -->
+<div class="controls"><h3 style="margin:0 0 8px;color:#fff">Pendulum</h3>
+<label>Length: <span class="val" id="lv">200</span><br><input type="range" id="len" min="80" max="350" value="200" oninput="document.getElementById('lv').textContent=this.value"></label>
+<label>Gravity: <span class="val" id="gv">1.0</span><br><input type="range" id="grav" min="1" max="30" value="10" oninput="document.getElementById('gv').textContent=(this.value/10).toFixed(1)"></label>
 </div>
 <script>
+let angle=Math.PI/4,aVel=0;
 function setup(){createCanvas(windowWidth,windowHeight)}
 function windowResized(){resizeCanvas(windowWidth,windowHeight)}
-function draw(){background(7,17,31); /* ANIMATED PHYSICS HERE */ }
+function draw(){
+  background(7,17,31);
+  let L=+document.getElementById('len').value;
+  let g=document.getElementById('grav').value/10;
+  let aAcc=-g/L*sin(angle);
+  aVel+=aAcc; aVel*=0.999; angle+=aVel;
+  let ox=width/2, oy=height*0.18;
+  let bx=ox+L*sin(angle), by=oy+L*cos(angle);
+  stroke(100,160,255,80); strokeWeight(2); line(ox,oy,bx,by);
+  fill(80,160,255); noStroke(); circle(bx,by,30);
+  fill(200); circle(ox,oy,8);
+}
 </script></body></html>
 
-Use this template structure. The draw() function MUST contain animated visuals (shapes, motion, trails). Use accurate physics.`;
+Follow this exact pattern: global state vars, physics updates in draw(), shapes drawn every frame. Adapt the physics and visuals to the requested topic. Make it visually impressive with colors, trails, or particles where appropriate.`;
 
   const userPrompt =
     `Create animated p5.js simulation: "${topic}". ` +
     (context ? `(${context.slice(0, 200)}) ` : '') +
-    `MUST have visible moving animation in draw(). Use full canvas. Return complete HTML only.`;
+    `Include global state variables, update physics each frame in draw(), and render moving shapes/particles on the full canvas. Add 2-3 control sliders. Return complete HTML only.`;
 
   const response = await client.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
