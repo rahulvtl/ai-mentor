@@ -22,6 +22,10 @@ export const StudyPlannerModal: React.FC<Props> = ({ onClose, initialPlan }) => 
   const [isGenerating, setIsGenerating] = useState(false);
   const [saved, setSaved] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  // Stable id for the plan currently being authored — preserved on edit, fresh on new.
+  // Using a ref so re-generating in the same modal session updates the same plan
+  // instead of creating duplicates.
+  const planIdRef = useRef<string>(initialPlan?.id ?? newPlanId());
   const isEditMode = !!initialPlan;
 
   const toggleSubject = (sub: string) =>
@@ -42,6 +46,8 @@ export const StudyPlannerModal: React.FC<Props> = ({ onClose, initialPlan }) => 
     setPlanText('');
     setSaved(false);
     setIsGenerating(true);
+    let accumulated = '';
+    let errored = false;
 
     const system = `You are an expert academic coach for Indian competitive exams (JEE/NEET).
 Create detailed, realistic weekly study plans. Be specific with timings, topics, and advice.
@@ -68,9 +74,29 @@ Generate a detailed 7-day weekly study schedule with subject-wise time allocatio
     await streamGroqResponse(
       system,
       user,
-      (chunk) => setPlanText((prev) => prev + chunk),
-      () => setIsGenerating(false),
+      (chunk) => {
+        accumulated += chunk;
+        setPlanText((prev) => prev + chunk);
+      },
+      () => {
+        setIsGenerating(false);
+        // Auto-save on successful completion so users never lose a plan by closing
+        // the modal without clicking Save. Re-generating updates the same id.
+        if (!errored && accumulated.trim().length > 0) {
+          saveStudyPlan({
+            id: planIdRef.current,
+            generatedAt: new Date().toISOString(),
+            exam,
+            examDate,
+            weakSubjects,
+            dailyHours,
+            content: accumulated,
+          });
+          setSaved(true);
+        }
+      },
       (err) => {
+        errored = true;
         setPlanText(`Error: ${err.message}`);
         setIsGenerating(false);
       },
@@ -80,7 +106,7 @@ Generate a detailed 7-day weekly study schedule with subject-wise time allocatio
 
   const handleSave = () => {
     saveStudyPlan({
-      id: initialPlan?.id ?? newPlanId(),
+      id: planIdRef.current,
       generatedAt: new Date().toISOString(),
       exam,
       examDate,
@@ -236,7 +262,10 @@ Generate a detailed 7-day weekly study schedule with subject-wise time allocatio
                   fontWeight: 600, fontSize: '0.82rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem',
                 }}
               >
-                {saved ? <><CheckCircle size={14} /> Saved to your profile!</> : <><Save size={14} /> Save Plan</>}
+                {saved
+                  ? <><CheckCircle size={14} /> {isEditMode ? 'Plan updated' : 'Plan saved'} — close to view in dashboard</>
+                  : <><Save size={14} /> Save Plan</>
+                }
               </button>
             )}
           </div>
