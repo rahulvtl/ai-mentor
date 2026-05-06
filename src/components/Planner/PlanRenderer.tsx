@@ -209,31 +209,42 @@ interface Props {
   daysLeft: number | null;
   exam: string;
   onLearnTopic?: (topic: string) => void;
+  /** Optional: scopes progress checkmarks to a specific plan id. */
+  planId?: string;
 }
 
-const STORAGE_KEY = 'ai-mentor-plan-checks';
+const CHECKS_KEY_PREFIX = 'ai-mentor-plan-checks';
 
-function loadChecks(): Set<string> {
+function checksKey(planId?: string): string {
+  return planId ? `${CHECKS_KEY_PREFIX}-${planId}` : CHECKS_KEY_PREFIX;
+}
+
+function loadChecks(planId?: string): Set<string> {
   try {
-    const stored = localStorage.getItem(STORAGE_KEY);
+    const stored = localStorage.getItem(checksKey(planId));
     if (stored) return new Set(JSON.parse(stored));
   } catch { /* ignore */ }
   return new Set();
 }
 
-function saveChecks(checks: Set<string>) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify([...checks]));
+function saveChecks(checks: Set<string>, planId?: string) {
+  localStorage.setItem(checksKey(planId), JSON.stringify([...checks]));
 }
 
-export const PlanRenderer: React.FC<Props> = ({ planText, daysLeft, exam, onLearnTopic }) => {
+export const PlanRenderer: React.FC<Props> = ({ planText, daysLeft, exam, onLearnTopic, planId }) => {
   const plan = parsePlanText(planText);
   const [expandedDays, setExpandedDays] = useState<Set<number>>(new Set([0]));
-  const [checkedItems, setCheckedItems] = useState<Set<string>>(() => loadChecks());
+  const [checkedItems, setCheckedItems] = useState<Set<string>>(() => loadChecks(planId));
 
-  // Persist checks to localStorage
+  // Re-load checks when switching between plans
   useEffect(() => {
-    saveChecks(checkedItems);
-  }, [checkedItems]);
+    setCheckedItems(loadChecks(planId));
+  }, [planId]);
+
+  // Persist checks to localStorage (scoped per plan id)
+  useEffect(() => {
+    saveChecks(checkedItems, planId);
+  }, [checkedItems, planId]);
 
   const toggleDay = (i: number) => {
     setExpandedDays(prev => {

@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { X, CalendarDays, Loader2, BookOpen, Save, CheckCircle } from 'lucide-react';
 import { streamGroqResponse } from '../../services/claudeService';
-import { saveStudyPlan, type StudyPlan } from '../../services/studyDataService';
+import { saveStudyPlan, newPlanId, type StudyPlan } from '../../services/studyDataService';
 import { PlanRenderer } from './PlanRenderer';
 
 interface Props {
@@ -80,6 +80,7 @@ Generate a detailed 7-day weekly study schedule with subject-wise time allocatio
 
   const handleSave = () => {
     saveStudyPlan({
+      id: initialPlan?.id ?? newPlanId(),
       generatedAt: new Date().toISOString(),
       exam,
       examDate,
