@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { X, CalendarDays, Loader2, BookOpen, Save, CheckCircle } from 'lucide-react';
 import { streamGroqResponse } from '../../services/claudeService';
 import { saveStudyPlan } from '../../services/studyDataService';
+import { PlanRenderer } from './PlanRenderer';
 
 interface Props {
   onClose: () => void;
@@ -201,17 +202,21 @@ Generate a detailed 7-day weekly study schedule with subject-wise time allocatio
               overflowY: 'auto',
               minHeight: '300px',
             }}>
-              <div style={{ fontFamily: 'inherit', fontSize: '0.84rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.85)', whiteSpace: 'pre-wrap' }}>
-                {planText || (
-                  <div style={{ color: 'var(--text-secondary)', textAlign: 'center', marginTop: '4rem', whiteSpace: 'normal' }}>
-                    <CalendarDays size={40} style={{ marginBottom: '1rem', opacity: 0.3 }} />
-                    <p>Select your exam, date, and preferences then hit <strong>Generate Plan</strong></p>
-                  </div>
-                )}
-                {isGenerating && (
+              {!planText && !isGenerating && (
+                <div style={{ color: 'var(--text-secondary)', textAlign: 'center', marginTop: '4rem' }}>
+                  <CalendarDays size={40} style={{ marginBottom: '1rem', opacity: 0.3 }} />
+                  <p>Select your exam, date, and preferences then hit <strong>Generate Plan</strong></p>
+                </div>
+              )}
+              {isGenerating && (
+                <div style={{ fontFamily: 'inherit', fontSize: '0.84rem', lineHeight: 1.7, color: 'rgba(255,255,255,0.85)', whiteSpace: 'pre-wrap' }}>
+                  {planText}
                   <span style={{ display: 'inline-block', width: '2px', height: '1em', background: 'var(--accent-blue)', animation: 'blink 0.8s step-end infinite', verticalAlign: 'text-bottom' }} />
-                )}
-              </div>
+                </div>
+              )}
+              {planText && !isGenerating && (
+                <PlanRenderer planText={planText} daysLeft={daysLeft} exam={exam} />
+              )}
             </div>
 
             {planText && !isGenerating && (
