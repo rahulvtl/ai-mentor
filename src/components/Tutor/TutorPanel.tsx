@@ -64,6 +64,8 @@ function getChipsForTopic(topic: string): string[] {
     return ['What equations describe projectile motion?', 'Give me a projectile problem', 'What angle gives maximum range?', 'How does air resistance affect it?'];
   if (t.includes('energy') || t.includes('kinetic') || t.includes('potential'))
     return ['What is the difference between KE and PE?', 'Explain conservation of energy', 'Give me an energy problem', 'What is power?'];
+  if (/\bwork\b/.test(t) && (t.includes('physic') || t.includes('mechan') || t.includes('energy')))
+    return ['What is the work-energy theorem?', 'Give me a work problem', 'When is work zero, positive, or negative?', 'What is the unit of work and how does it relate to power?'];
 
   // ── Chemistry ─────────────────────────────────────────────────────────────
   if (t.includes('atom') || t.includes('electron') || t.includes('proton') || t.includes('nucleus'))
@@ -72,7 +74,7 @@ function getChipsForTopic(topic: string): string[] {
     return ['How is the periodic table organised?', 'What are groups and periods?', 'Give me a practice question', 'What are the most reactive elements?'];
   if (t.includes('bond') || t.includes('ionic') || t.includes('covalent'))
     return ['What is the difference between ionic and covalent bonds?', 'Why do atoms bond?', 'Give me a bonding question', 'What is electronegativity?'];
-  if (t.includes('acid') || t.includes('base') || t.includes('ph'))
+  if (t.includes('acid') || t.includes('alkali') || /\bbase\b/.test(t) || /\bph\b/.test(t))
     return ['What is the pH scale?', 'What makes something an acid or base?', 'Give me a neutralisation problem', 'What is a buffer?'];
   if (t.includes('reaction') || t.includes('chemical') || t.includes('stoichiom'))
     return ['How do I balance a chemical equation?', 'What are the types of chemical reactions?', 'Give me a stoichiometry problem', 'What is a catalyst?'];
@@ -94,7 +96,7 @@ function getChipsForTopic(topic: string): string[] {
     return ['How do I calculate the area of different shapes?', 'Give me a geometry problem', 'What is the difference between perimeter and area?', 'How is geometry used in architecture?'];
   if (t.includes('matrix') || t.includes('matrices'))
     return ['What is matrix multiplication?', 'Give me a matrix problem', 'What is a determinant?', 'What are matrices used for?'];
-  if (t.includes('pi') || t.includes('circle'))
+  if (/\bpi\b/.test(t) || t.includes('circle'))
     return ['Why is pi irrational?', 'Give me a circle problem', 'What is the formula for circumference and area?', 'Where does pi appear in nature?'];
 
   // ── Generic fallback with topic name embedded ─────────────────────────────
