@@ -631,7 +631,7 @@ Adapt this EXACT design to any requested topic. Keep the two-column grid layout,
 
   const response = await client.chat.completions.create({
     model: 'llama-3.3-70b-versatile',
-    max_tokens: 12000,
+    max_tokens: 6000,
     stream: false,
     messages: [
       { role: 'system', content: systemPrompt },
