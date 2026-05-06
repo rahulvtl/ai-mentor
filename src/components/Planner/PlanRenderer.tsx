@@ -1,5 +1,12 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { ChevronDown, ChevronRight, Clock, AlertTriangle, Lightbulb, Trophy, BookOpen } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { ChevronDown, ChevronRight, Clock, AlertTriangle, Lightbulb, Trophy, BookOpen, Sparkles, FlaskConical, PencilRuler } from 'lucide-react';
+
+const LEARN_OPTIONS: { key: string; label: string; icon: React.ComponentType<{ size?: number }>; build: (topic: string) => string }[] = [
+  { key: 'overview', label: 'Overview',         icon: BookOpen,     build: (t) => t },
+  { key: 'theory',   label: 'Theory & concepts', icon: Sparkles,    build: (t) => `Theory and key concepts of ${t}` },
+  { key: 'examples', label: 'Worked examples',   icon: FlaskConical, build: (t) => `Worked examples of ${t} with step-by-step solutions` },
+  { key: 'practice', label: 'Practice problems', icon: PencilRuler, build: (t) => `Practice problems on ${t} with solutions` },
+];
 
 const SUBJECT_COLORS: Record<string, string> = {
   physics: '#3B82F6',
@@ -216,6 +223,23 @@ export const PlanRenderer: React.FC<Props> = ({ planText, daysLeft, exam, onLear
     onLearnTopic?.(topic);
   }, [onLearnTopic]);
 
+  const [openMenu, setOpenMenu] = useState<string | null>(null);
+  const menuWrapRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!openMenu) return;
+    const onDocClick = (e: MouseEvent) => {
+      if (!menuWrapRef.current?.contains(e.target as Node)) setOpenMenu(null);
+    };
+    const onEsc = (e: KeyboardEvent) => { if (e.key === 'Escape') setOpenMenu(null); };
+    document.addEventListener('mousedown', onDocClick);
+    document.addEventListener('keydown', onEsc);
+    return () => {
+      document.removeEventListener('mousedown', onDocClick);
+      document.removeEventListener('keydown', onEsc);
+    };
+  }, [openMenu]);
+
   const totalSessions = plan.days.reduce((sum, d) => sum + d.sessions.length, 0);
   const completedSessions = checkedItems.size;
   const progress = totalSessions > 0 ? (completedSessions / totalSessions) * 100 : 0;
@@ -379,24 +403,69 @@ export const PlanRenderer: React.FC<Props> = ({ planText, daysLeft, exam, onLear
                         {session.hours}
                       </div>
 
-                      {/* Learn button */}
+                      {/* Learn dropdown */}
                       {onLearnTopic && !checked && (
-                        <button
-                          onClick={(e) => handleLearn(session.topics || session.subject, e)}
-                          style={{
-                            display: 'flex', alignItems: 'center', gap: '0.3rem',
-                            padding: '0.3rem 0.65rem', borderRadius: '8px',
-                            background: `${color}15`, border: `1px solid ${color}33`,
-                            color, fontSize: '0.7rem', fontWeight: 600,
-                            cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
-                            transition: 'all 0.15s',
-                          }}
-                          onMouseEnter={(e) => { e.currentTarget.style.background = `${color}30`; }}
-                          onMouseLeave={(e) => { e.currentTarget.style.background = `${color}15`; }}
+                        <div
+                          ref={openMenu === key ? menuWrapRef : undefined}
+                          style={{ position: 'relative', flexShrink: 0 }}
                         >
-                          <BookOpen size={12} />
-                          Learn
-                        </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setOpenMenu((cur) => (cur === key ? null : key));
+                            }}
+                            style={{
+                              display: 'flex', alignItems: 'center', gap: '0.3rem',
+                              padding: '0.35rem 0.7rem', borderRadius: '8px',
+                              background: `${color}18`, border: `1px solid ${color}40`,
+                              color, fontSize: '0.72rem', fontWeight: 700,
+                              cursor: 'pointer', whiteSpace: 'nowrap',
+                              transition: 'all 0.15s',
+                            }}
+                            onMouseEnter={(e) => { e.currentTarget.style.background = `${color}30`; }}
+                            onMouseLeave={(e) => { e.currentTarget.style.background = `${color}18`; }}
+                          >
+                            <BookOpen size={12} />
+                            Learn
+                            <ChevronDown size={11} style={{ transform: openMenu === key ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+                          </button>
+                          {openMenu === key && (
+                            <div
+                              onClick={(e) => e.stopPropagation()}
+                              style={{
+                                position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 50,
+                                minWidth: '220px',
+                                background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+                                borderRadius: '10px', boxShadow: '0 12px 30px rgba(0,0,0,0.5)',
+                                overflow: 'hidden', padding: '0.3rem',
+                                display: 'flex', flexDirection: 'column', gap: '2px',
+                              }}
+                            >
+                              {LEARN_OPTIONS.map(({ key: optKey, label, icon: Icon, build }) => (
+                                <button
+                                  key={optKey}
+                                  onClick={(e) => {
+                                    setOpenMenu(null);
+                                    handleLearn(build(session.topics || session.subject), e);
+                                  }}
+                                  style={{
+                                    display: 'flex', alignItems: 'center', gap: '0.55rem',
+                                    padding: '0.55rem 0.7rem', borderRadius: '7px',
+                                    background: 'transparent', border: 'none',
+                                    color: 'var(--text-primary)', fontSize: '0.78rem', fontWeight: 500,
+                                    cursor: 'pointer', textAlign: 'left', width: '100%',
+                                    transition: 'background 0.12s',
+                                  }}
+                                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
+                                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                                >
+                                  <Icon size={13} />
+                                  {label}
+                                </button>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       )}
                     </div>
                   );

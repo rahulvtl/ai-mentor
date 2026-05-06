@@ -106,8 +106,8 @@ export const StudyDashboard: React.FC<Props> = ({ onBack, onLearnTopic }) => {
       {/* Content */}
       <main style={{
         flex: 1, overflowY: 'auto',
-        padding: '1.5rem',
-        maxWidth: '900px', width: '100%',
+        padding: '1.5rem 2rem',
+        maxWidth: '1300px', width: '100%',
         margin: '0 auto',
       }}>
         {plan ? (
