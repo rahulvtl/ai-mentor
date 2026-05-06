@@ -1,26 +1,28 @@
 import React, { useState, useRef } from 'react';
 import { X, CalendarDays, Loader2, BookOpen, Save, CheckCircle } from 'lucide-react';
 import { streamGroqResponse } from '../../services/claudeService';
-import { saveStudyPlan } from '../../services/studyDataService';
+import { saveStudyPlan, type StudyPlan } from '../../services/studyDataService';
 import { PlanRenderer } from './PlanRenderer';
 
 interface Props {
   onClose: () => void;
+  initialPlan?: StudyPlan | null;
 }
 
 const EXAMS = ['JEE Main', 'JEE Advanced', 'NEET', 'CBSE Class 12'];
 const SUBJECTS = ['Physics', 'Chemistry', 'Mathematics', 'Biology'];
 const _HOURS = [2, 3, 4, 5, 6, 7, 8, 10, 12]; void _HOURS;
 
-export const StudyPlannerModal: React.FC<Props> = ({ onClose }) => {
-  const [exam, setExam] = useState('');
-  const [examDate, setExamDate] = useState('');
-  const [weakSubjects, setWeakSubjects] = useState<string[]>([]);
-  const [dailyHours, setDailyHours] = useState(6);
+export const StudyPlannerModal: React.FC<Props> = ({ onClose, initialPlan }) => {
+  const [exam, setExam] = useState(initialPlan?.exam ?? '');
+  const [examDate, setExamDate] = useState(initialPlan?.examDate ?? '');
+  const [weakSubjects, setWeakSubjects] = useState<string[]>(initialPlan?.weakSubjects ?? []);
+  const [dailyHours, setDailyHours] = useState(initialPlan?.dailyHours ?? 6);
   const [planText, setPlanText] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [saved, setSaved] = useState(false);
   const abortRef = useRef<AbortController | null>(null);
+  const isEditMode = !!initialPlan;
 
   const toggleSubject = (sub: string) =>
     setWeakSubjects((prev) =>
@@ -98,8 +100,10 @@ Generate a detailed 7-day weekly study schedule with subject-wise time allocatio
               <CalendarDays size={20} color="white" />
             </div>
             <div>
-              <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>Study Planner</h2>
-              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>AI-generated personalised schedule</p>
+              <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700 }}>{isEditMode ? 'Edit Study Plan' : 'Study Planner'}</h2>
+              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--text-secondary)' }}>
+                {isEditMode ? 'Adjust details and re-generate' : 'AI-generated personalised schedule'}
+              </p>
             </div>
           </div>
           <button onClick={onClose} style={iconBtn}><X size={18} /></button>

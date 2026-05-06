@@ -108,3 +108,9 @@ export function saveStudyPlan(plan: StudyPlan): void {
   store.studyPlan = plan;
   save(store);
 }
+
+export function deleteStudyPlan(): void {
+  const store = load();
+  store.studyPlan = null;
+  save(store);
+}
