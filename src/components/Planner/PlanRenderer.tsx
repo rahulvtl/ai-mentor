@@ -1,12 +1,46 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { ChevronDown, ChevronRight, Clock, AlertTriangle, Lightbulb, Trophy, BookOpen, Sparkles, FlaskConical, PencilRuler } from 'lucide-react';
+import { ChevronDown, ChevronRight, Clock, AlertTriangle, Lightbulb, Trophy, BookOpen, Sparkles } from 'lucide-react';
 
-const LEARN_OPTIONS: { key: string; label: string; icon: React.ComponentType<{ size?: number }>; build: (topic: string) => string }[] = [
-  { key: 'overview', label: 'Overview',         icon: BookOpen,     build: (t) => t },
-  { key: 'theory',   label: 'Theory & concepts', icon: Sparkles,    build: (t) => `Theory and key concepts of ${t}` },
-  { key: 'examples', label: 'Worked examples',   icon: FlaskConical, build: (t) => `Worked examples of ${t} with step-by-step solutions` },
-  { key: 'practice', label: 'Practice problems', icon: PencilRuler, build: (t) => `Practice problems on ${t} with solutions` },
-];
+interface LearnTarget {
+  label: string;
+  query: string;
+  isMain: boolean;
+}
+
+/**
+ * Parse a session topic string ("Mechanics: Kinematics, Dynamics, Work Energy")
+ * into one or more learnable targets. The umbrella (before the colon) becomes the
+ * main entry; the comma-separated subtopics become individual entries so each
+ * launches a distinct Wikipedia lookup.
+ */
+function parseLearnTargets(raw: string): LearnTarget[] {
+  const trimmed = raw.trim();
+  if (!trimmed) return [];
+
+  const splitSubs = (s: string) =>
+    s
+      .split(/\s*(?:,|;|\band\b|\/)\s*/i)
+      .map((p) => p.replace(/^[\s\-•]+|[\s.]+$/g, '').trim())
+      .filter((p) => p.length > 1);
+
+  const colonIdx = trimmed.indexOf(':');
+  if (colonIdx > 0 && colonIdx < trimmed.length - 1) {
+    const main = trimmed.slice(0, colonIdx).trim();
+    const subs = splitSubs(trimmed.slice(colonIdx + 1));
+    if (subs.length === 0) return [{ label: main, query: main, isMain: true }];
+    return [
+      { label: main, query: main, isMain: true },
+      ...subs.map((sub) => ({ label: sub, query: sub, isMain: false })),
+    ];
+  }
+
+  if (trimmed.includes(',')) {
+    const parts = splitSubs(trimmed);
+    return parts.map((p, i) => ({ label: p, query: p, isMain: i === 0 }));
+  }
+
+  return [{ label: trimmed, query: trimmed, isMain: true }];
+}
 
 const SUBJECT_COLORS: Record<string, string> = {
   physics: '#3B82F6',
@@ -403,70 +437,114 @@ export const PlanRenderer: React.FC<Props> = ({ planText, daysLeft, exam, onLear
                         {session.hours}
                       </div>
 
-                      {/* Learn dropdown */}
-                      {onLearnTopic && !checked && (
-                        <div
-                          ref={openMenu === key ? menuWrapRef : undefined}
-                          style={{ position: 'relative', flexShrink: 0 }}
-                        >
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setOpenMenu((cur) => (cur === key ? null : key));
-                            }}
-                            style={{
-                              display: 'flex', alignItems: 'center', gap: '0.3rem',
-                              padding: '0.35rem 0.7rem', borderRadius: '8px',
-                              background: `${color}18`, border: `1px solid ${color}40`,
-                              color, fontSize: '0.72rem', fontWeight: 700,
-                              cursor: 'pointer', whiteSpace: 'nowrap',
-                              transition: 'all 0.15s',
-                            }}
-                            onMouseEnter={(e) => { e.currentTarget.style.background = `${color}30`; }}
-                            onMouseLeave={(e) => { e.currentTarget.style.background = `${color}18`; }}
-                          >
-                            <BookOpen size={12} />
-                            Learn
-                            <ChevronDown size={11} style={{ transform: openMenu === key ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
-                          </button>
-                          {openMenu === key && (
-                            <div
-                              onClick={(e) => e.stopPropagation()}
+                      {/* Learn dropdown — parses the session into individual subtopics */}
+                      {onLearnTopic && !checked && (() => {
+                        const targets = parseLearnTargets(session.topics || session.subject);
+                        // Single target: render as a plain button (no dropdown noise).
+                        if (targets.length <= 1) {
+                          const t = targets[0];
+                          if (!t) return null;
+                          return (
+                            <button
+                              onClick={(e) => handleLearn(t.query, e)}
                               style={{
-                                position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 50,
-                                minWidth: '220px',
-                                background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
-                                borderRadius: '10px', boxShadow: '0 12px 30px rgba(0,0,0,0.5)',
-                                overflow: 'hidden', padding: '0.3rem',
-                                display: 'flex', flexDirection: 'column', gap: '2px',
+                                display: 'flex', alignItems: 'center', gap: '0.3rem',
+                                padding: '0.35rem 0.7rem', borderRadius: '8px',
+                                background: `${color}18`, border: `1px solid ${color}40`,
+                                color, fontSize: '0.72rem', fontWeight: 700,
+                                cursor: 'pointer', whiteSpace: 'nowrap', flexShrink: 0,
+                                transition: 'all 0.15s',
                               }}
+                              onMouseEnter={(e) => { e.currentTarget.style.background = `${color}30`; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = `${color}18`; }}
                             >
-                              {LEARN_OPTIONS.map(({ key: optKey, label, icon: Icon, build }) => (
-                                <button
-                                  key={optKey}
-                                  onClick={(e) => {
-                                    setOpenMenu(null);
-                                    handleLearn(build(session.topics || session.subject), e);
-                                  }}
-                                  style={{
-                                    display: 'flex', alignItems: 'center', gap: '0.55rem',
-                                    padding: '0.55rem 0.7rem', borderRadius: '7px',
-                                    background: 'transparent', border: 'none',
-                                    color: 'var(--text-primary)', fontSize: '0.78rem', fontWeight: 500,
-                                    cursor: 'pointer', textAlign: 'left', width: '100%',
-                                    transition: 'background 0.12s',
-                                  }}
-                                  onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.06)'; }}
-                                  onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
-                                >
-                                  <Icon size={13} />
-                                  {label}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
+                              <BookOpen size={12} />
+                              Learn
+                            </button>
+                          );
+                        }
+                        return (
+                          <div
+                            ref={openMenu === key ? menuWrapRef : undefined}
+                            style={{ position: 'relative', flexShrink: 0 }}
+                          >
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenu((cur) => (cur === key ? null : key));
+                              }}
+                              style={{
+                                display: 'flex', alignItems: 'center', gap: '0.3rem',
+                                padding: '0.35rem 0.7rem', borderRadius: '8px',
+                                background: `${color}18`, border: `1px solid ${color}40`,
+                                color, fontSize: '0.72rem', fontWeight: 700,
+                                cursor: 'pointer', whiteSpace: 'nowrap',
+                                transition: 'all 0.15s',
+                              }}
+                              onMouseEnter={(e) => { e.currentTarget.style.background = `${color}30`; }}
+                              onMouseLeave={(e) => { e.currentTarget.style.background = `${color}18`; }}
+                            >
+                              <BookOpen size={12} />
+                              Learn
+                              <ChevronDown size={11} style={{ transform: openMenu === key ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }} />
+                            </button>
+                            {openMenu === key && (
+                              <div
+                                onClick={(e) => e.stopPropagation()}
+                                style={{
+                                  position: 'absolute', top: 'calc(100% + 6px)', right: 0, zIndex: 50,
+                                  minWidth: '240px', maxWidth: '320px',
+                                  background: 'var(--bg-secondary)', border: '1px solid var(--border-color)',
+                                  borderRadius: '10px', boxShadow: '0 12px 30px rgba(0,0,0,0.5)',
+                                  overflow: 'hidden', padding: '0.4rem',
+                                  display: 'flex', flexDirection: 'column', gap: '2px',
+                                }}
+                              >
+                                <div style={{
+                                  fontSize: '0.65rem', fontWeight: 700, color: 'var(--text-secondary)',
+                                  textTransform: 'uppercase', letterSpacing: '0.08em',
+                                  padding: '0.4rem 0.6rem 0.25rem',
+                                }}>
+                                  Pick a subtopic to learn
+                                </div>
+                                {targets.map((t, ti) => (
+                                  <button
+                                    key={ti}
+                                    onClick={(e) => {
+                                      setOpenMenu(null);
+                                      handleLearn(t.query, e);
+                                    }}
+                                    style={{
+                                      display: 'flex', alignItems: 'center', gap: '0.55rem',
+                                      padding: '0.55rem 0.7rem', borderRadius: '7px',
+                                      background: 'transparent', border: 'none',
+                                      color: 'var(--text-primary)',
+                                      fontSize: '0.82rem',
+                                      fontWeight: t.isMain ? 700 : 500,
+                                      cursor: 'pointer', textAlign: 'left', width: '100%',
+                                      transition: 'background 0.12s',
+                                    }}
+                                    onMouseEnter={(e) => { e.currentTarget.style.background = `${color}22`; }}
+                                    onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+                                  >
+                                    {t.isMain
+                                      ? <BookOpen size={13} style={{ color }} />
+                                      : <Sparkles size={12} style={{ color, opacity: 0.85 }} />
+                                    }
+                                    <span style={{ flex: 1 }}>{t.label}</span>
+                                    {t.isMain && (
+                                      <span style={{
+                                        fontSize: '0.62rem', color: 'var(--text-secondary)',
+                                        textTransform: 'uppercase', letterSpacing: '0.06em',
+                                      }}>Overview</span>
+                                    )}
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
                   );
                 })}
