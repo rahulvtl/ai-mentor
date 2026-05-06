@@ -144,7 +144,7 @@ export const TutorPanel: React.FC<TutorPanelProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
-  const _pyqs = getPYQsForTopic(topic); void _pyqs;
+  const [curatedCount, setCuratedCount] = useState(0);
 
   // Reset chat when topic changes
   useEffect(() => {
@@ -157,6 +157,7 @@ export const TutorPanel: React.FC<TutorPanelProps> = ({
     setIsFlipped(false);
     setKnownIds(new Set());
     setAiPYQs([]);
+    setCuratedCount(0);
     setPyqScore({ correct: 0, attempted: 0 });
     setMessages([
       {
@@ -168,12 +169,20 @@ export const TutorPanel: React.FC<TutorPanelProps> = ({
   }, [topic]);
 
   const loadAIPYQs = useCallback(async (type: ExamType) => {
-    setIsGeneratingPYQs(true);
-    setAiPYQs([]);
     setPyqScore({ correct: 0, attempted: 0 });
+
+    // 1. Show curated past-paper-style questions immediately so the user has
+    //    something to work on while the LLM streams. These come from the
+    //    hand-vetted bank in src/data/pyqBank.ts and are real exam-style.
+    const curated = getPYQsForTopic(topic);
+    setCuratedCount(curated.length);
+    setAiPYQs(curated);
+    setIsGeneratingPYQs(true);
+
+    // 2. Top up with AI-generated questions in the chosen exam style.
     try {
       const results = await generateAIPYQs(topic, articleDescription ?? '', type);
-      const questions: PYQQuestion[] = results.map((q, i) => ({
+      const aiQuestions: PYQQuestion[] = results.map((q, i) => ({
         id: `ai-${i}`,
         subject: q.subject as PYQQuestion['subject'],
         topic,
@@ -186,9 +195,9 @@ export const TutorPanel: React.FC<TutorPanelProps> = ({
         explanation: q.explanation,
         difficulty: q.difficulty,
       }));
-      setAiPYQs(questions);
+      setAiPYQs([...curated, ...aiQuestions]);
     } catch {
-      setAiPYQs([]);
+      // AI failed — keep just the curated set. Don't wipe the user's questions.
     } finally {
       setIsGeneratingPYQs(false);
     }
@@ -633,7 +642,8 @@ export const TutorPanel: React.FC<TutorPanelProps> = ({
 
           {/* Questions area */}
           <div style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            {isGeneratingPYQs ? (
+            {isGeneratingPYQs && aiPYQs.length === 0 ? (
+              // No curated matches and AI still loading -> full loader
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '1rem', paddingTop: '3rem' }}>
                 <Loader2 size={32} color="var(--accent-purple)" style={{ animation: 'spin 1s linear infinite' }} />
                 <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0 }}>
@@ -652,22 +662,33 @@ export const TutorPanel: React.FC<TutorPanelProps> = ({
               <>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <p style={{ fontSize: '0.72rem', fontWeight: 700, color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.08em', margin: 0 }}>
-                    {aiPYQs.length} AI-Generated {examType} Questions
+                    {curatedCount > 0 && `${curatedCount} past-paper-style`}
+                    {curatedCount > 0 && (aiPYQs.length - curatedCount) > 0 && ' + '}
+                    {(aiPYQs.length - curatedCount) > 0 && `${aiPYQs.length - curatedCount} AI-generated`}
+                    {' '}{examType} Questions
                   </p>
                   <button
                     onClick={() => loadAIPYQs(examType)}
-                    style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--accent-blue)', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.72rem', fontWeight: 600, padding: 0 }}
+                    disabled={isGeneratingPYQs}
+                    style={{ background: 'transparent', border: 'none', cursor: isGeneratingPYQs ? 'default' : 'pointer', color: 'var(--accent-blue)', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.72rem', fontWeight: 600, padding: 0, opacity: isGeneratingPYQs ? 0.5 : 1 }}
                   >
                     <RotateCcw size={11} /> New Set
                   </button>
                 </div>
-                {aiPYQs.map((q) => (
+                {aiPYQs.map((q, idx) => (
                   <PYQCard
                     key={q.id}
                     question={q}
+                    isCurated={idx < curatedCount}
                     onAnswer={(correct) => setPyqScore((s) => ({ correct: s.correct + (correct ? 1 : 0), attempted: s.attempted + 1 }))}
                   />
                 ))}
+                {isGeneratingPYQs && (
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', padding: '0.75rem', color: 'var(--text-secondary)', fontSize: '0.78rem' }}>
+                    <Loader2 size={14} color="var(--accent-purple)" style={{ animation: 'spin 1s linear infinite' }} />
+                    Generating more {examType} questions…
+                  </div>
+                )}
               </>
             )}
           </div>
@@ -953,7 +974,7 @@ function MessageContent({ content }: { content: string }) {
   );
 }
 
-function PYQCard({ question: q, onAnswer }: { question: PYQQuestion; onAnswer?: (correct: boolean) => void }) {
+function PYQCard({ question: q, onAnswer, isCurated }: { question: PYQQuestion; onAnswer?: (correct: boolean) => void; isCurated?: boolean }) {
   const [selected, setSelected] = useState<number | null>(null);
   const [showExplanation, setShowExplanation] = useState(false);
   const answered = selected !== null;
@@ -971,6 +992,11 @@ function PYQCard({ question: q, onAnswer }: { question: PYQQuestion; onAnswer?: 
     }}>
       {/* Meta */}
       <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+        <span style={{
+          padding: '0.15rem 0.5rem', borderRadius: '20px', fontSize: '0.65rem', fontWeight: 700,
+          background: isCurated ? 'rgba(59,130,246,0.15)' : 'rgba(139,92,246,0.15)',
+          color: isCurated ? 'var(--accent-blue)' : 'var(--accent-purple)',
+        }}>{isCurated ? 'Curated' : 'AI'}</span>
         {[q.exam, q.year.toString(), q.subject, q.difficulty].map((tag, i) => (
           <span key={i} style={{
             padding: '0.15rem 0.5rem', borderRadius: '20px', fontSize: '0.65rem', fontWeight: 600,
